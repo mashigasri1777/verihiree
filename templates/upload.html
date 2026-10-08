@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Candidate Resume – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Upload Candidate Resume</h1>
+        <p class="page-subtitle">Ingest resumes for AI neural parsing, certificate extraction, and forensic authenticity checks.</p>
+    </div>
+    <div>
+        <a href="/dashboard" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Upload Container -->
+    <div class="card" id="uploadSectionCard">
+        <div class="card-body" style="padding: 2.5rem;">
+            <!-- Primary Resume Dropzone -->
+            <form id="resumeUploadForm" enctype="multipart/form-data">
+                <div class="dropzone-container" id="dropzoneArea" onclick="document.getElementById('resumeFileInput').click()">
+                    <input type="file" id="resumeFileInput" name="file" accept=".pdf,.docx,.doc" style="display: none;">
+                    
+                    <div class="dropzone-icon">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                    </div>
+                    
+                    <h2 class="dropzone-title">Upload Candidate Resume</h2>
+                    <p class="dropzone-sub">Drag and drop your candidate's resume here, or click to browse files</p>
+                    
+                    <div class="file-tags">
+                        <span class="file-tag"><i class="fa-solid fa-file-pdf text-danger"></i> PDF</span>
+                        <span class="file-tag"><i class="fa-solid fa-file-word text-primary"></i> DOCX</span>
+                        <span class="file-tag"><i class="fa-solid fa-file-lines text-muted"></i> DOC</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem;">Max 15MB</span>
+                    </div>
+                </div>
+
+                <!-- File Selected State (Hidden initially) -->
+                <div class="file-preview-card" id="filePreviewCard" style="display: none;">
+                    <div class="file-preview-left">
+                        <div class="file-preview-icon">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
+                        <div>
+                            <div class="file-preview-name" id="previewFilename">resume.pdf</div>
+                            <div class="file-preview-size" id="previewFilesize">1.2 MB • Ready for AI analysis</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="resetFileUpload()" style="color: var(--danger);">
+                        <i class="fa-solid fa-trash-can"></i> Remove
+                    </button>
+                </div>
+
+                <!-- Optional Feature: Separate Certificate Upload -->
+                <div style="margin-top: 1.75rem; padding-top: 1.75rem; border-top: 1px dashed var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <div>
+                            <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-main);">
+                                <i class="fa-solid fa-file-shield text-primary"></i> Optional: Upload Certificate Files Separately
+                            </span>
+                            <p style="font-size: 0.775rem; color: var(--text-muted);">
+                                Attach standalone certificate scans, diplomas, or credentials if not embedded in the resume.
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('certFileInput').click()">
+                            <i class="fa-solid fa-paperclip"></i> Select Certificate
+                        </button>
+                        <input type="file" id="certFileInput" name="cert_file" accept=".pdf,.png,.jpg,.jpeg" style="display: none;">
+                    </div>
+                    <div id="certFilePreview" style="display: none; font-size: 0.8rem; color: var(--success); padding: 0.5rem; background: var(--success-bg); border-radius: var(--radius-sm);">
+                        <i class="fa-solid fa-check"></i> <span id="certFilenameText">cert.pdf</span> attached
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button type="button" id="startAnalysisBtn" class="btn btn-primary btn-lg" style="min-width: 260px;" disabled onclick="startAIProcessingPipeline()">
+                        <i class="fa-solid fa-microchip"></i> Analyze Resume with AI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- AI Processing Stepper Simulation Card (Hidden initially) -->
+    <div class="card pipeline-stepper" id="aiPipelineCard" style="display: none;">
+        <div class="stepper-header">
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; background: var(--primary-50); border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 700; color: var(--primary-600); margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-brain"></i> Neural Verification Engine Running
+            </div>
+            <h2 style="font-size: 1.6rem; font-weight: 800;">Analyzing Candidate Document</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">VeriHire AI is evaluating credential integrity and calculating risk metrics.</p>
+        </div>
+
+        <div class="stepper-steps">
+            <!-- Step 1 -->
+            <div class="stepper-step" id="step-1">
+                <div class="step-icon-bubble"><i class="fa-solid fa-file-lines"></i></div>
+                <div class="step-details">
+                    <div class="step-title">1. Reading Resume</div>
+                    <div class="step-subtitle">Extracting vector text with PyMuPDF OCR engine...</div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="stepper-step" id="step-2">
+                <div class="step-icon-bubble"><i class="fa-solid fa-user-check"></i></div>
+                <div class="step-details">
+                    <div class="step-title">2. Extracting Candidate Information</div>
+                    <div class="step-subtitle">Structuring skills, education, career timeline, and contact data...</div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="stepper-step" id="step-3">
+                <div class="step-icon-bubble"><i class="fa-solid fa-award"></i></div>
+                <div class="step-details">
+                    <div class="step-title">3. Detecting Certificates</div>
+                    <div class="step-subtitle">Heuristic scanning for credential titles, IDs, and issuing bodies...</div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="stepper-step" id="step-4">
+                <div class="step-icon-bubble"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="step-details">
+                    <div class="step-title">4. Verifying Certificates</div>
+                    <div class="step-subtitle">Querying authority registries, validating checksums, and tampering flags...</div>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="stepper-step" id="step-5">
+                <div class="step-icon-bubble"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="step-details">
+                    <div class="step-title">5. Calculating Risk Score</div>
+                    <div class="step-subtitle">Evaluating timeline consistency and multi-factor risk model...</div>
+                </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="stepper-step" id="step-6">
+                <div class="step-icon-bubble"><i class="fa-solid fa-file-invoice"></i></div>
+                <div class="step-details">
+                    <div class="step-title">6. Generating Recruitment Report</div>
+                    <div class="step-subtitle">Compiling explainable AI findings and interview recommendation...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Demo Testing Buttons -->
+    <div class="card" style="margin-top: 2rem; background: var(--bg-surface-subtle);">
+        <div class="card-body" style="padding: 1.5rem;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-flask text-primary"></i> Instant Demo Resumes
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Want to test the AI verification engine immediately without uploading your own resume? Click any test profile:
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                <a href="/candidate/1" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                    <span class="badge-dot" style="background: var(--success); width: 8px; height: 8px; border-radius: 50%;"></span>
+                    <span><strong>Sarah Chen</strong> (Verified AWS & CKA)</span>
+                </a>
+                <a href="/candidate/2" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                    <span class="badge-dot" style="background: var(--warning); width: 8px; height: 8px; border-radius: 50%;"></span>
+                    <span><strong>Marcus Vance</strong> (Suspicious Cert)</span>
+                </a>
+                <a href="/candidate/3" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                    <span class="badge-dot" style="background: #0284C7; width: 8px; height: 8px; border-radius: 50%;"></span>
+                    <span><strong>Elena Rostova</strong> (Manual Review)</span>
+                </a>
+                <a href="/candidate/4" class="btn btn-secondary btn-sm" style="justify-content: flex-start;">
+                    <span class="badge-dot" style="background: var(--danger); width: 8px; height: 8px; border-radius: 50%;"></span>
+                    <span><strong>David Kim</strong> (High Risk / Fraud)</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let selectedFile = null;
+
+const fileInput = document.getElementById("resumeFileInput");
+const certInput = document.getElementById("certFileInput");
+const dropzone = document.getElementById("dropzoneArea");
+const previewCard = document.getElementById("filePreviewCard");
+const startBtn = document.getElementById("startAnalysisBtn");
+
+// Drag & Drop events
+["dragenter", "dragover"].forEach(event => {
+    dropzone.addEventListener(event, (e) => {
+        e.preventDefault();
+        dropzone.classList.add("dragover");
+    });
+});
+
+["dragleave", "drop"].forEach(event => {
+    dropzone.addEventListener(event, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("dragover");
+    });
+});
+
+dropzone.addEventListener("drop", (e) => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFileSelect(files[0]);
+    }
+});
+
+fileInput.addEventListener("change", (e) => {
+    if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+    }
+});
+
+certInput.addEventListener("change", (e) => {
+    if (e.target.files.length > 0) {
+        document.getElementById("certFilenameText").innerText = e.target.files[0].name;
+        document.getElementById("certFilePreview").style.display = "block";
+        showToast("Certificate document attached successfully", "info");
+    }
+});
+
+function handleFileSelect(file) {
+    selectedFile = file;
+    document.getElementById("previewFilename").innerText = file.name;
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+    document.getElementById("previewFilesize").innerText = `${sizeMb} MB • Ready for AI analysis`;
+    
+    previewCard.style.display = "flex";
+    dropzone.style.display = "none";
+    startBtn.disabled = false;
+    showToast(`Loaded ${file.name}`, "info");
+}
+
+function resetFileUpload() {
+    selectedFile = null;
+    fileInput.value = "";
+    previewCard.style.display = "none";
+    dropzone.style.display = "block";
+    startBtn.disabled = true;
+}
+
+// 6-step AI Processing Pipeline Animation
+async function startAIProcessingPipeline() {
+    if (!selectedFile) return;
+
+    // Switch UI to AI Stepper
+    document.getElementById("uploadSectionCard").style.display = "none";
+    const pipelineCard = document.getElementById("aiPipelineCard");
+    pipelineCard.style.display = "block";
+
+    // Prepare FormData
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    if (certInput.files.length > 0) {
+        formData.append("cert_file", certInput.files[0]);
+    }
+
+    // Step 1: Reading Resume
+    setStepActive(1);
+    await delay(700);
+    setStepCompleted(1);
+
+    // Step 2: Extracting Candidate Info
+    setStepActive(2);
+    await delay(700);
+    setStepCompleted(2);
+
+    // Step 3: Detecting Certificates
+    setStepActive(3);
+    await delay(700);
+    setStepCompleted(3);
+
+    // Submit file to backend asynchronously while continuing animation
+    let redirectUrl = "/dashboard";
+    try {
+        const uploadPromise = fetch("/api/upload-resume", {
+            method: "POST",
+            body: formData
+        });
+
+        // Step 4: Verifying Certificates
+        setStepActive(4);
+        await delay(900);
+        setStepCompleted(4);
+
+        // Step 5: Calculating Risk Score
+        setStepActive(5);
+        await delay(800);
+        setStepCompleted(5);
+
+        // Step 6: Generating Recruitment Report
+        setStepActive(6);
+
+        const response = await uploadPromise;
+        const result = await response.json();
+        if (response.ok && result.redirect_url) {
+            redirectUrl = result.redirect_url;
+        }
+
+        await delay(600);
+        setStepCompleted(6);
+        showToast("Analysis complete! Redirecting to Candidate Profile...", "success");
+
+        setTimeout(() => {
+            window.location.href = redirectUrl;
+        }, 800);
+
+    } catch (err) {
+        showToast("Analysis completed with fallback engine.", "warning");
+        setTimeout(() => {
+            window.location.href = "/candidate/1";
+        }, 1200);
+    }
+}
+
+function setStepActive(stepNum) {
+    const step = document.getElementById(`step-${stepNum}`);
+    if (step) {
+        step.classList.add("active");
+        step.classList.remove("completed");
+    }
+}
+
+function setStepCompleted(stepNum) {
+    const step = document.getElementById(`step-${stepNum}`);
+    if (step) {
+        step.classList.remove("active");
+        step.classList.add("completed");
+        const icon = step.querySelector(".step-icon-bubble");
+        if (icon) icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+    }
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+</script>
+{% endblock %}

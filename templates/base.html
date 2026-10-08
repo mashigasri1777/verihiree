@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VeriHire AI – Resume & Certificate Verification System{% endblock %}</title>
+    <!-- Google Fonts: Inter & Manrope -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- VeriHire Design System -->
+    <link rel="stylesheet" href="/static/css/verihire.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% block page_layout %}
+    <!-- Default Recruiter SaaS Layout -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="brand-wrapper">
+                    <div class="brand-shield-logo">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="brand-name">
+                        VeriHire <span class="ai-tag">AI</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="sidebar-section-title">Core Recruitment</div>
+                
+                <a href="/dashboard" class="sidebar-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-grid-2"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="/candidates" class="sidebar-link {% if request.url.path == '/candidates' %}active{% endif %}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Candidates</span>
+                </a>
+
+                <a href="/upload" class="sidebar-link {% if request.url.path == '/upload' %}active{% endif %}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload Resume</span>
+                </a>
+
+                <a href="/verification-queue" class="sidebar-link {% if request.url.path == '/verification-queue' %}active{% endif %}">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Verification Queue</span>
+                    <span class="sidebar-counter">{{ manual_queue_count|default(1) }}</span>
+                </a>
+
+                <a href="/interviews" class="sidebar-link {% if request.url.path == '/interviews' %}active{% endif %}">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Interviews</span>
+                </a>
+
+                <div class="sidebar-section-title">Intelligence & Governance</div>
+
+                <a href="/analytics" class="sidebar-link {% if request.url.path == '/analytics' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Analytics</span>
+                </a>
+
+                <a href="/security" class="sidebar-link {% if request.url.path == '/security' %}active{% endif %}">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Security & Privacy</span>
+                </a>
+
+                <a href="/settings" class="sidebar-link {% if request.url.path == '/settings' %}active{% endif %}">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">Sarah Jenkins</div>
+                        <div class="user-role">Lead Technical Recruiter</div>
+                    </div>
+                    <a href="/login" title="Sign Out" style="color: var(--text-muted); padding: 4px;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="app-main">
+            <!-- App Topbar -->
+            <header class="app-topbar">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button type="button" class="btn btn-secondary btn-icon-only" style="display: none;" id="sidebarToggleBtn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="topbar-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search candidates, certificates, skills (Ctrl+K)..." id="globalSearchInput">
+                    </div>
+                </div>
+
+                <div class="topbar-actions">
+                    <!-- Demo Mode Switcher Dropdown -->
+                    <div class="dropdown" style="position: relative;">
+                        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('demoCandidatesMenu').classList.toggle('active')">
+                            <i class="fa-solid fa-flask text-primary"></i> Demo Profiles <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+                        </button>
+                        <div id="demoCandidatesMenu" style="display: none; position: absolute; right: 0; top: 120%; width: 260px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); z-index: 50; padding: 0.5rem;">
+                            <div style="font-size: 0.725rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding: 0.5rem;">Quick Demo Profiles</div>
+                            <a href="/candidate/1" class="sidebar-link" style="padding: 0.5rem;">
+                                <span class="badge-dot" style="background: var(--success); width: 8px; height: 8px; border-radius: 50%;"></span>
+                                <div><strong>Sarah Chen</strong><div style="font-size: 0.75rem; color: var(--text-muted);">Verified (AWS & CKA)</div></div>
+                            </a>
+                            <a href="/candidate/2" class="sidebar-link" style="padding: 0.5rem;">
+                                <span class="badge-dot" style="background: var(--warning); width: 8px; height: 8px; border-radius: 50%;"></span>
+                                <div><strong>Marcus Vance</strong><div style="font-size: 0.75rem; color: var(--text-muted);">Suspicious Cert ID</div></div>
+                            </a>
+                            <a href="/candidate/3" class="sidebar-link" style="padding: 0.5rem;">
+                                <span class="badge-dot" style="background: #0284C7; width: 8px; height: 8px; border-radius: 50%;"></span>
+                                <div><strong>Elena Rostova</strong><div style="font-size: 0.75rem; color: var(--text-muted);">Needs Manual Review</div></div>
+                            </a>
+                            <a href="/candidate/4" class="sidebar-link" style="padding: 0.5rem;">
+                                <span class="badge-dot" style="background: var(--danger); width: 8px; height: 8px; border-radius: 50%;"></span>
+                                <div><strong>David Kim</strong><div style="font-size: 0.75rem; color: var(--text-muted);">High Risk / Fake Cert</div></div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <!-- Notifications Button -->
+                    <div style="position: relative;">
+                        <button class="topbar-icon-btn" id="notifToggleBtn" title="Notifications">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notification-badge"></span>
+                        </button>
+                        <div id="notifPopover" style="display: none; position: absolute; right: 0; top: 120%; width: 340px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); z-index: 50; padding: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 0.75rem;">
+                                <h4 style="font-size: 0.95rem; font-weight: 700;">Notifications</h4>
+                                <span class="badge badge-verified">4 New</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.65rem; max-height: 280px; overflow-y: auto;">
+                                <div style="font-size: 0.825rem; padding: 0.5rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                                    <strong>Sarah Chen</strong>: AWS & CNCF certificates verified (Score: 98%).
+                                    <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 2px;">10 mins ago</div>
+                                </div>
+                                <div style="font-size: 0.825rem; padding: 0.5rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                                    <strong class="text-warning">Elena Rostova</strong>: OpenStack credential requires manual verification.
+                                    <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 2px;">45 mins ago</div>
+                                </div>
+                                <div style="font-size: 0.825rem; padding: 0.5rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                                    <strong class="text-danger">Marcus Vance</strong>: Stanford ML certificate ID format mismatch detected.
+                                    <div style="font-size: 0.725rem; color: var(--text-muted); margin-top: 2px;">2 hours ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="/upload" class="btn btn-sm btn-primary">
+                        <i class="fa-solid fa-plus"></i> Upload Resume
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Body -->
+            <main class="app-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Global Modals -->
+    <!-- Evidence Modal -->
+    <div class="modal-overlay" id="evidenceModal">
+        <div class="modal-dialog" style="max-width: 720px;">
+            <div class="modal-header">
+                <div class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-file-shield text-primary"></i> Verification Evidence & Forensic Audit
+                </div>
+                <button type="button" class="modal-close-btn" style="background:none;border:none;cursor:pointer;font-size:1.25rem;color:var(--text-muted);" onclick="closeModal('evidenceModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="evidenceContent">
+                <!-- Rendered dynamically via verihire.js -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('evidenceModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/verihire.js"></script>
+    <script>
+      // Demo popover toggle helper
+      document.addEventListener('click', function(e) {
+        const menu = document.getElementById('demoCandidatesMenu');
+        if (menu && !e.target.closest('.dropdown')) {
+          menu.style.display = 'none';
+        }
+      });
+      document.querySelector('.dropdown button')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('demoCandidatesMenu');
+        if (menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      });
+
+      const notifToggle = document.getElementById('notifToggleBtn');
+      const notifPopover = document.getElementById('notifPopover');
+      if (notifToggle && notifPopover) {
+        notifToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          notifPopover.style.display = (notifPopover.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function(e) {
+          if (!e.target.closest('#notifPopover') && e.target !== notifToggle) {
+            notifPopover.style.display = 'none';
+          }
+        });
+      }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

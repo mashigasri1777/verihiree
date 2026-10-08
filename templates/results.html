@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Results – VERIRESUME{% endblock %}
+
+{% block content %}
+<div class="container results-page-container">
+    <!-- Header -->
+    <div class="results-header">
+        <div>
+            <span class="section-tag">VERIFICATION COMPLETE</span>
+            <h1 class="page-title">Credential Authenticity Dashboard</h1>
+            <p class="page-desc">
+                Audit summary for <strong>{{ candidate.name or "Candidate" }}</strong> across {{ certificates|length }} credential(s).
+            </p>
+        </div>
+        <div class="header-action">
+            <a href="/report/{{ resume.id }}" class="btn btn-primary">
+                <i class="fa-solid fa-file-pdf"></i> View & Print Formal Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Dashboard Top Overview Grid -->
+    <div class="results-overview-grid">
+        <!-- Score Circular Gauge Card -->
+        <div class="score-gauge-card">
+            <div class="gauge-header">
+                <h3>OVERALL AUTHENTICITY SCORE</h3>
+            </div>
+            
+            <div class="circular-score-wrap">
+                <svg class="score-ring" viewBox="0 0 120 120">
+                    <circle class="score-ring-bg" cx="60" cy="60" r="50"></circle>
+                    <circle class="score-ring-progress" id="scoreCircleProgress" cx="60" cy="60" r="50"
+                            stroke-dasharray="314.159"
+                            stroke-dashoffset="{{ 314.159 * (1 - (summary.average_score / 100)) }}"></circle>
+                </svg>
+                <div class="score-ring-text">
+                    <span class="score-number">{{ summary.average_score|round(0)|int }}<span class="percent">%</span></span>
+                    <span class="score-classification status-pill status-{{ summary.overall_status|lower|replace(' ', '-') }}">
+                        {{ summary.overall_status }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="gauge-formula-note">
+                <span>Calculated via SymPy Symbolic Formulation</span>
+                <code>{{ symbolic_formula }}</code>
+            </div>
+        </div>
+
+        <!-- Metric Counter Cards -->
+        <div class="metrics-grid-4">
+            <div class="metric-card metric-verified">
+                <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="metric-val">{{ summary.verified_count }}</div>
+                <div class="metric-lbl">Verified Authenticated</div>
+            </div>
+
+            <div class="metric-card metric-review">
+                <div class="metric-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="metric-val">{{ summary.review_count }}</div>
+                <div class="metric-lbl">Review Required</div>
+            </div>
+
+            <div class="metric-card metric-suspicious">
+                <div class="metric-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="metric-val">{{ summary.suspicious_count }}</div>
+                <div class="metric-lbl">Suspicious Claims</div>
+            </div>
+
+            <div class="metric-card metric-failed">
+                <div class="metric-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                <div class="metric-val">{{ summary.failed_count }}</div>
+                <div class="metric-lbl">Mismatched / Failed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificate Verification Audit Cards -->
+    <div class="audit-records-section">
+        <h2 class="section-title"><i class="fa-solid fa-shield-halved text-cyan"></i> Verified Credential Breakdown</h2>
+
+        <div class="audit-cards-list">
+            {% for cert in certificates %}
+            {% set vr = cert.verification_result %}
+            <div class="audit-card">
+                <div class="audit-card-header">
+                    <div class="audit-card-title-group">
+                        <span class="cert-order-badge">Credential #{{ loop.index }}</span>
+                        <h3>{{ cert.certificate_name }}</h3>
+                    </div>
+                    
+                    <div class="audit-card-badge-group">
+                        <span class="audit-score-pill score-{{ vr.status|lower|replace(' ', '-') if vr else 'pending' }}">
+                            Score: {{ vr.authenticity_score|round(0)|int if vr else 0 }}%
+                        </span>
+                        <span class="status-pill status-{{ vr.status|lower|replace(' ', '-') if vr else 'pending' }}">
+                            {{ vr.status if vr else 'PENDING' }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="audit-meta-grid">
+                    <div>
+                        <span class="meta-label">Claimed Candidate:</span>
+                        <span class="meta-val">{{ cert.candidate_name or candidate.name }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Certificate ID:</span>
+                        <span class="meta-val code-val">{{ cert.certificate_id or "N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Issuing Authority:</span>
+                        <span class="meta-val">{{ cert.issuing_organization or "N/A" }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Issue Date:</span>
+                        <span class="meta-val">{{ cert.issue_date or "N/A" }}</span>
+                    </div>
+                </div>
+
+                <!-- Verification Field Match Matrix -->
+                <div class="checks-matrix-box">
+                    <div class="matrix-title">Multi-Field Integrity Checks (Comparison Engine)</div>
+                    <div class="checks-row">
+                        <div class="check-item {% if vr and vr.name_match %}match{% else %}mismatch{% endif %}">
+                            <span class="check-icon">{% if vr and vr.name_match %}✓{% else %}✗{% endif %}</span>
+                            <span class="check-text">Name Match (30%)</span>
+                        </div>
+                        <div class="check-item {% if vr and vr.id_match %}match{% else %}mismatch{% endif %}">
+                            <span class="check-icon">{% if vr and vr.id_match %}✓{% else %}✗{% endif %}</span>
+                            <span class="check-text">ID Match (30%)</span>
+                        </div>
+                        <div class="check-item {% if vr and vr.course_match %}match{% else %}mismatch{% endif %}">
+                            <span class="check-icon">{% if vr and vr.course_match %}✓{% else %}✗{% endif %}</span>
+                            <span class="check-text">Course Match (20%)</span>
+                        </div>
+                        <div class="check-item {% if vr and vr.org_match %}match{% else %}mismatch{% endif %}">
+                            <span class="check-icon">{% if vr and vr.org_match %}✓{% else %}✗{% endif %}</span>
+                            <span class="check-text">Organization Match (10%)</span>
+                        </div>
+                        <div class="check-item {% if vr and vr.date_match %}match{% else %}mismatch{% endif %}">
+                            <span class="check-icon">{% if vr and vr.date_match %}✓{% else %}✗{% endif %}</span>
+                            <span class="check-text">Date Match (10%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Source & Details Footer -->
+                <div class="audit-card-footer">
+                    <div class="audit-source">
+                        <i class="fa-solid fa-server text-cyan"></i>
+                        <span>Verification Source: <strong>{{ vr.verification_source if vr else 'Local Mock Registry' }}</strong></span>
+                    </div>
+                    <div class="audit-details-text">
+                        {{ vr.details if vr else 'Pending verification.' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

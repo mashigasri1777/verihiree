@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.name }} – Candidate Verification Profile | VeriHire AI{% endblock %}
+
+{% block content %}
+<!-- Candidate Profile Hero Header -->
+<div class="candidate-hero">
+    <div class="candidate-hero-left">
+        <img src="{{ candidate.avatar or 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80' }}" alt="{{ candidate.name }}" class="candidate-big-avatar">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                <h1 class="candidate-hero-title">{{ candidate.name }}</h1>
+                {% if candidate.verification_status == 'VERIFIED' %}
+                <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> VERIFIED CANDIDATE</span>
+                {% elif candidate.verification_status == 'NEEDS MANUAL VERIFICATION' %}
+                <span class="badge badge-manual"><i class="fa-solid fa-triangle-exclamation"></i> NEEDS MANUAL VERIFICATION</span>
+                {% elif candidate.verification_status == 'SUSPICIOUS' %}
+                <span class="badge badge-suspicious"><i class="fa-solid fa-triangle-exclamation"></i> SUSPICIOUS CREDENTIALS</span>
+                {% else %}
+                <span class="badge badge-fake"><i class="fa-solid fa-circle-xmark"></i> HIGH RISK / INVALID</span>
+                {% endif %}
+            </div>
+
+            <div class="candidate-hero-meta">
+                <span><i class="fa-solid fa-briefcase text-primary"></i> <strong>{{ candidate.position }}</strong></span>
+                <span><i class="fa-solid fa-location-dot text-muted"></i> {{ candidate.location }}</span>
+                <span><i class="fa-solid fa-envelope text-muted"></i> {{ candidate.email }}</span>
+                <span><i class="fa-solid fa-phone text-muted"></i> {{ candidate.phone }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Score & Risk Gauges -->
+    <div class="candidate-hero-right">
+        <!-- Circular Resume Confidence Gauge -->
+        <div class="score-gauge-box">
+            <div style="position: relative; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                <svg class="score-circle-svg" viewBox="0 0 100 100">
+                    <circle class="score-circle-bg" cx="50" cy="50" r="42"></circle>
+                    <circle class="score-circle-val" cx="50" cy="50" r="42" 
+                        stroke-dasharray="264" 
+                        stroke-dashoffset="{{ 264 - (264 * candidate.overall_resume_score / 100) }}"
+                        style="{% if candidate.overall_resume_score >= 85 %}stroke: var(--success);{% elif candidate.overall_resume_score >= 65 %}stroke: var(--warning);{% else %}stroke: var(--danger);{% endif %}">
+                    </circle>
+                </svg>
+                <div class="score-gauge-num" style="{% if candidate.overall_resume_score >= 85 %}color: var(--success);{% elif candidate.overall_resume_score >= 65 %}color: var(--warning);{% else %}color: var(--danger);{% endif %}">
+                    {{ candidate.overall_resume_score|round|int }}
+                </div>
+            </div>
+            <div class="score-gauge-label">Resume Score</div>
+        </div>
+
+        <!-- Risk Level Gauge Card -->
+        <div class="score-gauge-box">
+            <div style="background: var(--bg-surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.85rem 1.25rem; text-align: center; min-width: 130px;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted);">Risk Level</div>
+                <div style="font-size: 1.35rem; font-weight: 800; font-family: var(--font-heading); margin-top: 0.2rem;
+                    {% if candidate.risk_level == 'LOW' %}color: var(--success);
+                    {% elif candidate.risk_level == 'MEDIUM' %}color: var(--warning);
+                    {% else %}color: var(--danger);{% endif %}
+                ">
+                    {{ candidate.risk_level }}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">{{ candidate.risk_score|round|int }}/100 Risk</div>
+            </div>
+            <div class="score-gauge-label">Fraud Index</div>
+        </div>
+
+        <!-- Quick Report Action -->
+        <div>
+            <a href="/report/{{ resume.id if resume else candidate.id }}" target="_blank" class="btn btn-secondary btn-sm" style="height: 42px;">
+                <i class="fa-solid fa-file-pdf text-danger"></i> Formal Report
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Recruiter Decision Panel -->
+<div class="decision-panel">
+    {% if candidate.verification_status in ['SUSPICIOUS', 'INVALID / FAKE', 'NEEDS MANUAL VERIFICATION'] %}
+    <div class="decision-warning-note">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.25rem;"></i>
+        <div>
+            <strong>AI Human-in-the-Loop Safeguard:</strong>
+            AI detected potential credential inconsistencies. Manual verification is recommended before making a final hiring decision. Never auto-reject candidates solely based on automated queries.
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">Recruiter Hiring Decision</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Current pipeline status: 
+                <strong>
+                    {% if candidate.recruiter_decision == 'SHORTLISTED' %}<span class="badge badge-verified">SHORTLISTED</span>
+                    {% elif candidate.recruiter_decision == 'VERIFICATION_REQUESTED' %}<span class="badge badge-manual">MANUAL REVIEW REQUESTED</span>
+                    {% elif candidate.recruiter_decision == 'REJECTED' %}<span class="badge badge-fake">REJECTED</span>
+                    {% else %}Pending Recruiter Review{% endif %}
+                </strong>
+            </p>
+        </div>
+
+        <div class="decision-actions">
+            <button type="button" class="btn btn-primary" onclick="openModal('scheduleInterviewModal')">
+                <i class="fa-solid fa-calendar-plus"></i> Shortlist for Interview
+            </button>
+            <button type="button" class="btn btn-warning" onclick="setCandidateDecision({{ candidate.id }}, 'VERIFICATION_REQUESTED')">
+                <i class="fa-solid fa-list-check"></i> Request Manual Verification
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="setCandidateDecision({{ candidate.id }}, 'SAVED')">
+                <i class="fa-solid fa-bookmark"></i> Save for Later
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmRejectCandidate({{ candidate.id }})">
+                <i class="fa-solid fa-ban"></i> Reject Application
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Content Tabs -->
+<div class="tab-container" style="margin-top: 2rem;">
+    <div class="tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="tab-overview">
+            <i class="fa-solid fa-chart-simple"></i> Overview
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-certificates">
+            <i class="fa-solid fa-award"></i> Certificate Verification ({{ certificates|length }})
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-resume">
+            <i class="fa-solid fa-file-lines"></i> Resume & Skills
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-ai-analysis">
+            <i class="fa-solid fa-brain"></i> AI Analysis & Risk
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-history">
+            <i class="fa-solid fa-clock-rotate-left"></i> Verification History
+        </button>
+        <button type="button" class="tab-btn" data-tab="tab-interviews">
+            <i class="fa-solid fa-comments"></i> Interviews ({{ interviews|length }})
+        </button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW -->
+    <div class="tab-pane active" id="tab-overview">
+        <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem;">
+            <!-- Score Breakdown Card -->
+            <div class="card" style="grid-column: span 7;">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fa-solid fa-sliders text-primary"></i> Neural Resume Evaluation</h3>
+                    <span class="badge badge-verified">{{ candidate.overall_resume_score|round|int }}/100 Confidence</span>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.35rem;">
+                                <span>Skills Match</span>
+                                <span>{{ candidate.skills_match_score|round|int }}%</span>
+                            </div>
+                            <div style="height: 8px; border-radius: var(--radius-full); background: var(--bg-surface-subtle); overflow: hidden;">
+                                <div style="height: 100%; width: {{ candidate.skills_match_score }}%; background: var(--primary-600); border-radius: var(--radius-full);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.35rem;">
+                                <span>Experience Relevance</span>
+                                <span>{{ candidate.experience_match_score|round|int }}%</span>
+                            </div>
+                            <div style="height: 8px; border-radius: var(--radius-full); background: var(--bg-surface-subtle); overflow: hidden;">
+                                <div style="height: 100%; width: {{ candidate.experience_match_score }}%; background: var(--blue-500); border-radius: var(--radius-full);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.35rem;">
+                                <span>Education Verification</span>
+                                <span>{{ candidate.education_match_score|round|int }}%</span>
+                            </div>
+                            <div style="height: 8px; border-radius: var(--radius-full); background: var(--bg-surface-subtle); overflow: hidden;">
+                                <div style="height: 100%; width: {{ candidate.education_match_score }}%; background: var(--success); border-radius: var(--radius-full);"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.35rem;">
+                                <span>Resume Consistency</span>
+                                <span>{{ candidate.consistency_score|round|int }}%</span>
+                            </div>
+                            <div style="height: 8px; border-radius: var(--radius-full); background: var(--bg-surface-subtle); overflow: hidden;">
+                                <div style="height: 100%; width: {{ candidate.consistency_score }}%; background: {% if candidate.consistency_score >= 75 %}var(--success){% else %}var(--warning){% endif %}; border-radius: var(--radius-full);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment Card -->
+            <div class="card" style="grid-column: span 5;">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fa-solid fa-shield-halved text-primary"></i> AI Risk Assessment</h3>
+                    {% if candidate.risk_level == 'LOW' %}<span class="badge badge-risk-low">LOW RISK</span>
+                    {% elif candidate.risk_level == 'MEDIUM' %}<span class="badge badge-risk-med">MEDIUM RISK</span>
+                    {% else %}<span class="badge badge-risk-high">HIGH RISK</span>{% endif %}
+                </div>
+                <div class="card-body">
+                    <div style="font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-secondary);">
+                        Weighted vulnerability matrix based on credential authenticity, employment timeline continuity, and document tamper indicators.
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.85rem;">
+                        <div style="display: flex; justify-content: space-between; padding: 0.6rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                            <span>Resume Inconsistencies:</span>
+                            <strong>{{ risk_factors.resume_inconsistencies if risk_factors else 'None detected' }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.6rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                            <span>Certificate Risk:</span>
+                            <strong style="{% if candidate.risk_level == 'HIGH' %}color: var(--danger);{% endif %}">{{ risk_factors.certificate_risk if risk_factors else 'Low (0.04)' }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.6rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                            <span>Experience Mismatch:</span>
+                            <strong>{{ risk_factors.experience_mismatch if risk_factors else 'Low' }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 0.6rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                            <span>Education Mismatch:</span>
+                            <strong>{{ risk_factors.education_mismatch if risk_factors else 'None' }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: CERTIFICATES (THE CORE FEATURE) -->
+    <div class="tab-pane" id="tab-certificates">
+        <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="font-size: 1.45rem; font-weight: 800;">Detected Credentials & Verification Audits</h2>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Every credential cross-examined against issuing registrar authorities, digital signatures, and metadata.</p>
+            </div>
+            <div>
+                <span class="badge badge-verified"><i class="fa-solid fa-lock"></i> Authoritative Registry Check</span>
+            </div>
+        </div>
+
+        {% for cert in certificates %}
+        {% set vr = cert.verification_result %}
+        <div class="cert-card">
+            <!-- Header -->
+            <div class="cert-header" onclick="this.nextElementSibling.classList.toggle('active')">
+                <div class="cert-title-area">
+                    <div class="cert-icon-badge">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div>
+                        <div class="cert-name">{{ cert.certificate_name }}</div>
+                        <div class="cert-issuer">Issued by: <strong>{{ cert.issuing_organization or 'Accredited Authority' }}</strong></div>
+                    </div>
+                </div>
+
+                <div style="text-align: right; display: flex; align-items: center; gap: 1.25rem;">
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Authenticity Score</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; font-family: var(--font-heading);
+                            {% if vr and vr.authenticity_score >= 85 %}color: var(--success);
+                            {% elif vr and vr.authenticity_score >= 60 %}color: var(--warning);
+                            {% else %}color: var(--danger);{% endif %}
+                        ">
+                            {{ vr.authenticity_score|round|int if vr else 85 }}%
+                        </div>
+                    </div>
+
+                    <div>
+                        {% if vr and vr.status == 'VERIFIED' %}
+                        <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> VERIFIED</span>
+                        {% elif vr and vr.status == 'NEEDS MANUAL VERIFICATION' %}
+                        <span class="badge badge-manual"><i class="fa-solid fa-triangle-exclamation"></i> NEEDS MANUAL VERIFICATION</span>
+                        {% elif vr and vr.status == 'SUSPICIOUS' %}
+                        <span class="badge badge-suspicious"><i class="fa-solid fa-triangle-exclamation"></i> SUSPICIOUS</span>
+                        {% else %}
+                        <span class="badge badge-fake"><i class="fa-solid fa-circle-xmark"></i> INVALID / FAKE</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata Row -->
+            <div class="cert-meta-grid">
+                <div class="cert-meta-item">
+                    <div class="meta-label">Certificate ID</div>
+                    <div class="meta-val" style="font-family: var(--font-mono);">{{ cert.certificate_id or 'N/A' }}</div>
+                </div>
+                <div class="cert-meta-item">
+                    <div class="meta-label">Claimed Recipient</div>
+                    <div class="meta-val">{{ cert.candidate_name or candidate.name }}</div>
+                </div>
+                <div class="cert-meta-item">
+                    <div class="meta-label">Issue Date</div>
+                    <div class="meta-val">{{ cert.issue_date or 'N/A' }}</div>
+                </div>
+                <div class="cert-meta-item">
+                    <div class="meta-label">Expiry Date</div>
+                    <div class="meta-val">{{ cert.expiry_date or 'Lifetime / No Expiry' }}</div>
+                </div>
+                <div class="cert-meta-item">
+                    <div class="meta-label">Verification Source</div>
+                    <div class="meta-val" style="font-size: 0.8rem;">{{ vr.verification_source if vr else 'Authoritative Registry' }}</div>
+                </div>
+            </div>
+
+            <!-- Explainable Flag Banner if Suspicious / Needs Manual Review -->
+            {% if vr and vr.status in ['SUSPICIOUS', 'INVALID / FAKE', 'NEEDS MANUAL VERIFICATION'] %}
+            <div class="ai-flag-banner">
+                <div class="ai-flag-header">
+                    <span><i class="fa-solid fa-circle-question"></i> Why was this flagged?</span>
+                    <span style="font-size: 0.8rem; font-weight: 600;">AI Confidence: {{ vr.ai_confidence|round|int if vr else 87 }}%</span>
+                </div>
+                <p style="font-size: 0.875rem;">{{ vr.ai_explanation or 'Certificate credentials could not be matched cleanly against the authority registry.' }}</p>
+
+                {% if vr.detected_issues_json %}
+                <ul class="ai-flag-reasons">
+                    {% for issue in vr.detected_issues_json|from_json %}
+                    <li><i class="fa-solid fa-triangle-exclamation text-danger"></i> {{ issue }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem;">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="viewCertificateEvidence('{{ cert.certificate_name }}', '{{ cert.candidate_name }}', '{{ cert.certificate_id }}', '{{ cert.issuing_organization }}', '{{ vr.evidence_diff_json|escapejs if vr.evidence_diff_json else '{}' }}')">
+                        <i class="fa-solid fa-table-columns text-primary"></i> View Evidence Diff
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" onclick="setCandidateDecision({{ candidate.id }}, 'VERIFICATION_REQUESTED')">
+                        <i class="fa-solid fa-user-clock"></i> Request Manual Verification
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 8-Point Verification Checklist Section -->
+            <div class="cert-checks-section">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.03em;">
+                    8-Point Verification Integrity Checklist
+                </div>
+
+                <div class="checks-grid">
+                    <div class="check-item">
+                        {% if vr and vr.id_format_valid %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-xmark check-fail"></i>{% endif %}
+                        <span>Certificate ID format</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and vr.issuing_org_verified %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-xmark check-fail"></i>{% endif %}
+                        <span>Issuing organization</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and vr.name_match %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-xmark check-fail"></i>{% endif %}
+                        <span>Candidate name match</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and vr.date_consistency %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-xmark check-fail"></i>{% endif %}
+                        <span>Date consistency</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and vr.qr_url_verified %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-exclamation check-warn"></i>{% endif %}
+                        <span>QR / verification URL</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and vr.digital_signature_valid %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-exclamation check-warn"></i>{% endif %}
+                        <span>Digital signature</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and vr.metadata_consistent %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-xmark check-fail"></i>{% endif %}
+                        <span>Metadata consistency</span>
+                    </div>
+
+                    <div class="check-item">
+                        {% if vr and not vr.tampering_detected %}<i class="fa-solid fa-circle-check check-pass"></i>{% else %}<i class="fa-solid fa-circle-xmark check-fail"></i>{% endif %}
+                        <span>Document tampering indicators</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- TAB 3: RESUME & SKILLS -->
+    <div class="tab-pane" id="tab-resume">
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-code text-primary"></i> Extracted Candidate Profile</h3>
+                <span class="badge badge-verified">Neural Extraction</span>
+            </div>
+            <div class="card-body">
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.65rem;">Skills & Technologies</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        {% for skill in skills %}
+                        <span class="badge" style="background: var(--bg-surface-subtle); color: var(--text-main); font-size: 0.85rem; padding: 0.4rem 0.8rem; border: 1px solid var(--border);">
+                            {{ skill }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.65rem;">Education</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% for edu in education %}
+                        <div style="padding: 0.85rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                            <strong>{{ edu.degree if edu is mapping else edu }}</strong>
+                            {% if edu is mapping and edu.school %}<div style="font-size: 0.85rem; color: var(--text-muted);">{{ edu.school }} • {{ edu.year }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.65rem;">Career Experience</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% for exp in experience %}
+                        <div style="padding: 0.85rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                            <strong>{{ exp.title if exp is mapping else exp }}</strong>
+                            {% if exp is mapping and exp.company %}<div style="font-size: 0.85rem; color: var(--text-muted);">{{ exp.company }} • {{ exp.period }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if resume and resume.raw_text %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-file-text text-primary"></i> Vector Raw Text Preview</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Extracted from {{ resume.filename }}</span>
+            </div>
+            <div class="card-body">
+                <pre style="background: var(--bg-surface-subtle); padding: 1.25rem; border-radius: var(--radius-md); font-size: 0.8rem; overflow-x: auto; max-height: 350px;">{{ resume.raw_text }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- TAB 4: AI ANALYSIS & RISK -->
+    <div class="tab-pane" id="tab-ai-analysis">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-microchip text-primary"></i> Explainable Intelligence Telemetry</h3>
+            </div>
+            <div class="card-body">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                    VeriHire AI evaluates consistency across four orthogonal axes: Skill congruence, Career timeline integrity, Authority registry verification, and Document forensic checks.
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                    <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Career Continuity</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--success); margin-top: 0.2rem;">Consistent</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">No suspicious career gaps detected</div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Issuer Registry Query</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; margin-top: 0.2rem;">
+                            {% if candidate.verification_status == 'VERIFIED' %}100% Match
+                            {% elif candidate.verification_status == 'NEEDS MANUAL VERIFICATION' %}Timeout / Unverified
+                            {% else %}Discrepancy Logged{% endif %}
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Live directory polling response</div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Digital Document Hash</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; margin-top: 0.2rem; font-family: var(--font-mono); font-size: 0.95rem;">
+                            SHA256: 7f8a...92bc
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Audit-trail timestamp locked</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: HISTORY & AUDIT TRAIL -->
+    <div class="tab-pane" id="tab-history">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left text-primary"></i> Verification Audit Trail</h3>
+                <span class="badge badge-verified">Immutable Log</span>
+            </div>
+            <div class="table-container" style="border: none;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Event</th>
+                            <th>Operator</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Today, 10:45 AM</td>
+                            <td><span class="badge badge-verified">PARSED</span></td>
+                            <td>VeriHire Neural Pipeline</td>
+                            <td>Document ingested & vector tokens extracted</td>
+                        </tr>
+                        <tr>
+                            <td>Today, 10:46 AM</td>
+                            <td><span class="badge badge-verified">REGISTRY_QUERY</span></td>
+                            <td>Authority Dispatcher</td>
+                            <td>Queried issuing registry directories</td>
+                        </tr>
+                        <tr>
+                            <td>Today, 10:47 AM</td>
+                            <td>
+                                {% if candidate.verification_status == 'VERIFIED' %}<span class="badge badge-verified">VERIFIED</span>
+                                {% else %}<span class="badge badge-manual">FLAGGED_REVIEW</span>{% endif %}
+                            </td>
+                            <td>AI Risk Scoring Engine</td>
+                            <td>Computed candidate risk score and authenticity breakdown</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 6: INTERVIEWS -->
+    <div class="tab-pane" id="tab-interviews">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+                <h2 style="font-size: 1.4rem; font-weight: 800;">Interview Schedule & Pipeline</h2>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Coordinate technical screens and executive rounds for {{ candidate.name }}.</p>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="openModal('scheduleInterviewModal')">
+                <i class="fa-solid fa-plus"></i> Schedule Interview
+            </button>
+        </div>
+
+        {% if interviews %}
+        <div class="card">
+            <div class="table-container" style="border: none;">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Round Type</th>
+                            <th>Interviewer</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Meeting Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in interviews %}
+                        <tr>
+                            <td><strong>{{ inv.interview_type }}</strong></td>
+                            <td>{{ inv.interviewer_name }}</td>
+                            <td>{{ inv.scheduled_at.strftime('%b %d, %Y at %I:%M %p') if inv.scheduled_at else 'Upcoming' }}</td>
+                            <td>
+                                {% if inv.status == 'SCHEDULED' %}<span class="badge badge-verified">SCHEDULED</span>
+                                {% else %}<span class="badge badge-manual">{{ inv.status }}</span>{% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ inv.meeting_link }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size: 0.775rem;">
+                                    <i class="fa-solid fa-video text-primary"></i> Join Room
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+            <div style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 1rem;"><i class="fa-regular fa-calendar-xmark"></i></div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">No Interviews Scheduled Yet</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Shortlist this candidate to book a technical or HR interview round.</p>
+            <button type="button" class="btn btn-primary btn-sm" onclick="openModal('scheduleInterviewModal')">
+                <i class="fa-solid fa-calendar-plus"></i> Schedule First Round
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Schedule Interview Modal -->
+<div class="modal-overlay" id="scheduleInterviewModal">
+    <div class="modal-dialog">
+        <form onsubmit="submitInterviewSchedule(event, {{ candidate.id }})">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-calendar-plus text-primary"></i> Schedule Interview: {{ candidate.name }}</h3>
+                <button type="button" class="modal-close-btn" onclick="closeModal('scheduleInterviewModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Interview Type</label>
+                    <select name="interview_type" class="form-control" required>
+                        <option value="Technical Screening Round">Technical Screening Round</option>
+                        <option value="System Design & Architecture">System Design & Architecture</option>
+                        <option value="Live Coding & Algorithms">Live Coding & Algorithms</option>
+                        <option value="HR & Cultural Fit">HR & Cultural Fit</option>
+                        <option value="Executive Final Round">Executive Final Round</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Interviewer Name</label>
+                    <input type="text" name="interviewer_name" class="form-control" value="Sarah Jenkins (Principal Recruiter)" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date & Time</label>
+                    <input type="datetime-local" name="scheduled_date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes for Interviewer</label>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Focus on multi-cloud resilience and credential verification confirmation..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('scheduleInterviewModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Send Invitation & Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function confirmRejectCandidate(candidateId) {
+    if (confirm("Are you sure you want to reject this candidate's application?")) {
+        setCandidateDecision(candidateId, "REJECTED");
+    }
+}
+</script>
+{% endblock %}

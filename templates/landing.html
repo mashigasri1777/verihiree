@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}VeriHire AI – Verify Resumes. Detect Fake Certificates. Hire With Confidence.{% endblock %}
+
+{% block page_layout %}
+<!-- Public Landing Navigation -->
+<nav class="landing-nav">
+    <div class="landing-nav-container">
+        <a href="/" class="brand-wrapper">
+            <div class="brand-shield-logo">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="brand-name">
+                VeriHire <span class="ai-tag">AI</span>
+            </div>
+        </a>
+
+        <div class="nav-menu">
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#resume-analysis" class="nav-link">Resume Parsing</a>
+            <a href="#certificate-verification" class="nav-link">Certificate Verification</a>
+            <a href="#risk-detection" class="nav-link">Risk Engine</a>
+            <a href="#security" class="nav-link">Security</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+        </div>
+
+        <div class="nav-actions">
+            <!-- Theme Toggle -->
+            <button class="theme-toggle-btn" title="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <a href="/login" class="btn btn-secondary btn-sm">Recruiter Login</a>
+            <a href="/upload" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section style="padding: 5rem 1.5rem 4rem; max-width: 1280px; margin: 0 auto; text-align: center;">
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.85rem; background: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius-full); font-size: 0.825rem; font-weight: 700; color: var(--primary-700); margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-sparkles text-primary"></i> Next-Gen Enterprise AI Credential Integrity Platform
+    </div>
+
+    <h1 style="font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 800; letter-spacing: -0.03em; max-width: 900px; margin: 0 auto 1.25rem; line-height: 1.15;">
+        Verify Resumes. Detect Fake Certificates. <span style="background: linear-gradient(135deg, var(--primary-600) 0%, var(--blue-600) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Hire With Confidence.</span>
+    </h1>
+
+    <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 720px; margin: 0 auto 2.5rem; line-height: 1.6;">
+        AI-powered resume screening and certificate verification for smarter, safer recruitment. Prevent credential fraud without auto-rejecting genuine talent.
+    </p>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 3.5rem;">
+        <a href="/upload" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume
+        </a>
+        <a href="/dashboard" class="btn btn-secondary btn-lg">
+            <i class="fa-solid fa-desktop"></i> View Recruiter Demo
+        </a>
+    </div>
+
+    <!-- Hero Visual: Animated Recruitment Verification Dashboard Preview -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); max-width: 1040px; margin: 0 auto; overflow: hidden; text-align: left;">
+        <!-- Mock Browser Header -->
+        <div style="padding: 0.85rem 1.5rem; background: var(--bg-surface-subtle); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #EF4444; display: inline-block;"></span>
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #F59E0B; display: inline-block;"></span>
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.75rem; font-family: var(--font-mono);">verihire.ai/dashboard/live-audit</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; color: var(--text-muted);">
+                <i class="fa-solid fa-shield-check text-success"></i> Live AI Engine Active
+            </div>
+        </div>
+
+        <!-- Dashboard Preview Content -->
+        <div style="padding: 2rem;">
+            <!-- Top Summary Strip -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Resume Ingested</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; margin-top: 0.2rem;">Sarah_Chen_CV.pdf</div>
+                    <div style="font-size: 0.75rem; color: var(--success);"><i class="fa-solid fa-check"></i> 100% Parsed (PyMuPDF)</div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Resume Confidence</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; color: var(--primary-600); margin-top: 0.2rem;">94 / 100</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Skills & Exp. High Match</div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Cert. Authenticity</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; color: var(--success); margin-top: 0.2rem;">98.5% Verified</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">AWS Registry API Matched</div>
+                </div>
+                <div style="padding: 1rem; background: var(--bg-surface-subtle); border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Candidate Risk</div>
+                    <div style="font-size: 1.15rem; font-weight: 700; color: var(--success); margin-top: 0.2rem;">LOW (8/100)</div>
+                    <div style="font-size: 0.75rem; color: var(--success);"><i class="fa-solid fa-thumbs-up"></i> Shortlist Recommended</div>
+                </div>
+            </div>
+
+            <!-- Interactive Live Verification Card Simulation -->
+            <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="brand-shield-logo" style="width: 38px; height: 38px;">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.05rem;">AWS Certified Solutions Architect - Professional</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">ID: AWS-SAP-9941 • Issued by Amazon Web Services</div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> VERIFIED (98.5%)</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; font-size: 0.825rem; background: var(--bg-surface-subtle); padding: 1rem; border-radius: var(--radius-md);">
+                    <div style="color: var(--success);"><i class="fa-solid fa-check"></i> Certificate ID format valid</div>
+                    <div style="color: var(--success);"><i class="fa-solid fa-check"></i> Issuing authority verified</div>
+                    <div style="color: var(--success);"><i class="fa-solid fa-check"></i> Candidate name match (100%)</div>
+                    <div style="color: var(--success);"><i class="fa-solid fa-check"></i> Digital signature valid</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 1: How It Works -->
+<section id="how-it-works" style="padding: 5rem 1.5rem; background: var(--bg-surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div style="max-width: 1280px; margin: 0 auto;">
+        <div style="text-align: center; max-width: 650px; margin: 0 auto 3.5rem;">
+            <span class="badge badge-verified" style="margin-bottom: 0.75rem;">Step-by-Step Workflow</span>
+            <h2 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">How VeriHire AI Protects Your Hiring Funnel</h2>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">From raw document upload to final interview shortlisting with full recruiter autonomy.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.75rem;">
+            <div class="card" style="padding: 2rem;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--primary-50); color: var(--primary-600); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 800; margin-bottom: 1.25rem;">1</div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Ingest & AI Parse</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Upload resumes in PDF, DOC, or DOCX formats. High-speed neural text extraction mines skills, education, and credentials.</p>
+            </div>
+
+            <div class="card" style="padding: 2rem;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--primary-50); color: var(--primary-600); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 800; margin-bottom: 1.25rem;">2</div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Certificate Detection</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Context-aware heuristic models detect all declared certifications, credential IDs, issuance dates, and validation links.</p>
+            </div>
+
+            <div class="card" style="padding: 2rem;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--primary-50); color: var(--primary-600); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 800; margin-bottom: 1.25rem;">3</div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Authenticity Verification</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Cross-queries official issuer registries, validates credential checksums, and detects metadata tampering or visual forgery.</p>
+            </div>
+
+            <div class="card" style="padding: 2rem;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: var(--primary-50); color: var(--primary-600); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 800; margin-bottom: 1.25rem;">4</div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Recruiter Decision</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Transparent scoring, explainable AI rationales, and seamless interview shortlisting empower recruiters to make the final call.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 2 & 3: AI Resume Analysis & Certificate Verification -->
+<section id="resume-analysis" style="padding: 5rem 1.5rem; max-width: 1280px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 3rem; align-items: center;">
+        <div>
+            <span class="badge badge-verified" style="margin-bottom: 0.75rem;">Forensic Analysis</span>
+            <h2 style="font-size: 2.35rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem;">
+                Explainable AI Resume & Credential Verification
+            </h2>
+            <p style="color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem;">
+                Standard resume parsers merely extract text. VeriHire AI scrutinizes consistency, checks career timelines against issuance dates, and validates cryptographic signatures against authoritative registrar databases.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--success-bg); color: var(--success); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-check"></i></div>
+                    <div>
+                        <strong>No Auto-Rejection Rule:</strong> If verification is uncertain or an issuer API times out, credentials transition to <em>Needs Manual Verification</em> so you never lose great candidates.
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-50); color: var(--primary-600); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-check"></i></div>
+                    <div>
+                        <strong>8-Point Verification Checklist:</strong> ID format validation, issuing body confirmation, recipient name match, date consistency, QR/link verification, digital signatures, and metadata tampering analysis.
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-50); color: var(--primary-600); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-check"></i></div>
+                    <div>
+                        <strong>Transparent Risk Gauge:</strong> Multivariable risk quantification flags resume contradictions before scheduling costly team interviews.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="font-size: 1.15rem;">Authenticity Assessment</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Real-time Credential Audit</span>
+                </div>
+                <span class="badge badge-suspicious"><i class="fa-solid fa-triangle-exclamation"></i> SUSPICIOUS (44%)</span>
+            </div>
+
+            <div style="background: #FFFBEB; border: 1px solid #FDE68A; padding: 1rem; border-radius: var(--radius-md); font-size: 0.85rem; color: #92400E; margin-bottom: 1.25rem;">
+                <strong>Why was this flagged?</strong>
+                <p style="margin-top: 0.25rem;">Certificate ID could not be matched with the issuer's verification record. Registry shows ID format mismatch and document metadata tampering.</p>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface-subtle); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem;">
+                <span>AI Confidence: <strong>87%</strong></span>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="showToast('View Evidence demonstrates side-by-side claim vs issuer registry diff in candidate profile.', 'info')">
+                    <i class="fa-solid fa-magnifying-glass"></i> View Evidence
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 4 & 5: Candidate Risk Detection & Recruiter Dashboard Preview -->
+<section id="risk-detection" style="padding: 5rem 1.5rem; background: var(--bg-surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div style="max-width: 1280px; margin: 0 auto; text-align: center;">
+        <span class="badge badge-verified" style="margin-bottom: 0.75rem;">Command Center</span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem;">
+            Engineered for Modern Talent Acquisition Teams
+        </h2>
+        <p style="color: var(--text-muted); max-width: 650px; margin: 0 auto 3rem;">
+            Everything recruiters need: high-level pipeline analytics, forensic candidate audits, manual review queue, and 1-click interview scheduling.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; text-align: left;">
+            <div class="card" style="padding: 1.75rem;">
+                <div class="metric-icon-box primary" style="margin-bottom: 1rem;"><i class="fa-solid fa-gauge-high"></i></div>
+                <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Multi-Factor Risk Gauge</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Weighted risk quantification categorizes candidates into LOW, MEDIUM, or HIGH risk with specific risk factor breakdowns.</p>
+            </div>
+
+            <div class="card" style="padding: 1.75rem;">
+                <div class="metric-icon-box warning" style="margin-bottom: 1rem;"><i class="fa-solid fa-list-check"></i></div>
+                <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Verification Queue</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Dedicated human-in-the-loop review board where recruiters can quickly inspect evidence and verify or request official docs.</p>
+            </div>
+
+            <div class="card" style="padding: 1.75rem;">
+                <div class="metric-icon-box success" style="margin-bottom: 1rem;"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Interview Shortlisting</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Seamless transition from verification to interview scheduling with automated invite templates and calendar status tracking.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 7: Security & Privacy -->
+<section id="security" style="padding: 5rem 1.5rem; max-width: 1280px; margin: 0 auto;">
+    <div style="text-align: center; max-width: 650px; margin: 0 auto 3.5rem;">
+        <span class="badge badge-verified" style="margin-bottom: 0.75rem;">Enterprise Grade</span>
+        <h2 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">Security, Privacy & Compliance</h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Candidate data is safeguarded with bank-grade encryption and strict privacy controls.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div class="card" style="padding: 1.75rem;">
+            <i class="fa-solid fa-lock text-primary" style="font-size: 1.75rem; margin-bottom: 1rem;"></i>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">AES-256 Document Encryption</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">All uploaded resumes and extracted records are encrypted at rest and in transit via TLS 1.3.</p>
+        </div>
+        <div class="card" style="padding: 1.75rem;">
+            <i class="fa-solid fa-user-shield text-success" style="font-size: 1.75rem; margin-bottom: 1rem;"></i>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Zero AI Model Training</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">Candidate PII is never used to train public foundation models. Complete data isolation per organization.</p>
+        </div>
+        <div class="card" style="padding: 1.75rem;">
+            <i class="fa-solid fa-clock-rotate-left text-warning" style="font-size: 1.75rem; margin-bottom: 1rem;"></i>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.35rem;">Automatic Data Retention</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">Configure automated document shredding policies (e.g. 30, 60, or 90 days) compliant with GDPR & CCPA.</p>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 8: FAQ -->
+<section id="faq" style="padding: 5rem 1.5rem; background: var(--bg-surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div style="max-width: 850px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <span class="badge badge-verified" style="margin-bottom: 0.75rem;">Questions Answered</span>
+            <h2 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em;">Frequently Asked Questions</h2>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <details class="card" style="padding: 1.25rem 1.5rem; cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1.05rem;">Does VeriHire AI auto-reject candidates with suspicious certificates?</summary>
+                <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                    <strong>No.</strong> We believe the recruiter should always remain in control. If an issuing database is unreachable or a format irregularity is detected, VeriHire AI tags the candidate as <em>“Needs Manual Verification”</em> or <em>“Suspicious”</em> and outlines the exact discrepancy so you can request documents or verify manually.
+                </p>
+            </details>
+
+            <details class="card" style="padding: 1.25rem 1.5rem; cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1.05rem;">Which resume and certificate formats are supported?</summary>
+                <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                    VeriHire AI supports PDF, DOC, DOCX resumes, as well as separate image files (PNG, JPG) for standalone certificate uploads. PyMuPDF and OCR extract text cleanly from both digital and scanned files.
+                </p>
+            </details>
+
+            <details class="card" style="padding: 1.25rem 1.5rem; cursor: pointer;">
+                <summary style="font-weight: 700; font-size: 1.05rem;">Can I generate formal PDF verification reports for executive audit?</summary>
+                <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                    Yes! Every analyzed candidate has a print-ready, downloadable audit report featuring credential stamps, cryptographic hashes, AI confidence ratings, and recruiter sign-offs.
+                </p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION 9: Final CTA -->
+<section style="padding: 6rem 1.5rem; text-align: center; max-width: 900px; margin: 0 auto;">
+    <h2 style="font-size: 2.75rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1.25rem;">
+        Ready to Eliminate Resume Fraud?
+    </h2>
+    <p style="font-size: 1.15rem; color: var(--text-muted); margin-bottom: 2.5rem;">
+        Join modern recruiting teams hiring faster, smarter, and with complete confidence.
+    </p>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="/upload" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume Now
+        </a>
+        <a href="/dashboard" class="btn btn-secondary btn-lg">
+            <i class="fa-solid fa-desktop"></i> Explore Recruiter Demo
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer style="background: var(--bg-surface); border-top: 1px solid var(--border); padding: 3rem 1.5rem;">
+    <div style="max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+        <div class="brand-wrapper">
+            <div class="brand-shield-logo">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="brand-name">
+                VeriHire <span class="ai-tag">AI</span>
+            </div>
+        </div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;">
+            &copy; 2026 VeriHire AI Inc. All rights reserved. Built with Python, FastAPI, and Advanced AI Verification.
+        </div>
+        <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+            <a href="/security">Security</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/login">Recruiter Portal</a>
+        </div>
+    </div>
+</footer>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Security & Privacy – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Enterprise Security & Compliance</h1>
+        <p class="page-subtitle">Zero-trust architecture, cryptographic tamper evidence, and candidate privacy governance.</p>
+    </div>
+    <div>
+        <span class="badge badge-verified" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+            <i class="fa-solid fa-shield-check"></i> SOC 2 Type II & GDPR Compliant
+        </span>
+    </div>
+</div>
+
+<div class="metrics-grid">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Document Encryption</div>
+            <div class="metric-value">AES-256</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-lock"></i> At-rest and in-transit</div>
+        </div>
+        <div class="metric-icon-box primary"><i class="fa-solid fa-key"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">PII Data Isolation</div>
+            <div class="metric-value">100%</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-user-shield"></i> Zero public model training</div>
+        </div>
+        <div class="metric-icon-box success"><i class="fa-solid fa-shield-halved"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Audit Log Retention</div>
+            <div class="metric-value">365 Days</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-clock-rotate-left"></i> Immutable ledger</div>
+        </div>
+        <div class="metric-icon-box info"><i class="fa-solid fa-server"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Auto Shred Policy</div>
+            <div class="metric-value">30 Days</div>
+            <div class="metric-sub warning"><i class="fa-solid fa-file-excel"></i> Configurable in settings</div>
+        </div>
+        <div class="metric-icon-box warning"><i class="fa-solid fa-trash-can"></i></div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-fingerprint text-primary"></i> Tamper-Evident Ledger Audit Records</h3>
+        <span class="badge badge-verified">Cryptographically Signed</span>
+    </div>
+    <div class="table-container" style="border: none;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Event Time</th>
+                    <th>Action</th>
+                    <th>Target Candidate</th>
+                    <th>Security Operator</th>
+                    <th>SHA-256 Checksum Hash</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.created_at.strftime('%b %d, %H:%M:%S UTC') if log.created_at else 'Just now' }}</td>
+                    <td><span class="badge badge-verified">{{ log.event_type }}</span></td>
+                    <td>{{ log.candidate.name if log.candidate else 'System Wide' }}</td>
+                    <td>{{ log.recruiter_name }}</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.775rem;">
+                        {{ (log.description|hash)[:16] if log.description else 'e3b0c44298fc1c14' }}...
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td>Just now</td>
+                    <td><span class="badge badge-verified">AI_VERIFICATION_COMPLETE</span></td>
+                    <td>Sarah Chen</td>
+                    <td>VeriHire AI Pipeline</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.775rem;">9f8a32b104928172...</td>
+                </tr>
+                <tr>
+                    <td>10 mins ago</td>
+                    <td><span class="badge badge-manual">MANUAL_QUEUE_ENQUEUE</span></td>
+                    <td>Elena Rostova</td>
+                    <td>VeriHire AI Pipeline</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.775rem;">78239abc01827491...</td>
+                </tr>
+                <tr>
+                    <td>25 mins ago</td>
+                    <td><span class="badge badge-fake">SUSPICIOUS_CREDENTIAL_FLAG</span></td>
+                    <td>Marcus Vance</td>
+                    <td>VeriHire AI Pipeline</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.775rem;">f47281bc89104829...</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

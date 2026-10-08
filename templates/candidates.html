@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Directory – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Candidate Directory & Credential Roster</h1>
+        <p class="page-subtitle">Track, filter, and audit all applicants across active engineering and product roles.</p>
+    </div>
+    <div>
+        <a href="/upload" class="btn btn-primary">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Resume
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <!-- Toolbar Filters -->
+    <div class="table-toolbar">
+        <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">All ({{ candidates|length }})</button>
+            <button class="filter-pill" data-filter="verified">Verified</button>
+            <button class="filter-pill" data-filter="manual">Needs Review</button>
+            <button class="filter-pill" data-filter="suspicious">Flagged</button>
+            <button class="filter-pill" data-filter="high-risk">High Risk</button>
+            <button class="filter-pill" data-filter="shortlisted">Shortlisted</button>
+        </div>
+
+        <div style="position: relative; width: 300px;">
+            <input type="text" id="tableSearchInput" class="form-control" placeholder="Search candidate, role, skills..." style="padding-left: 2.25rem;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+        </div>
+    </div>
+
+    <!-- Candidates Table -->
+    <div class="table-container" style="border: none;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Position</th>
+                    <th>Resume Score</th>
+                    <th>Certificates</th>
+                    <th>Verification Status</th>
+                    <th>Risk Level</th>
+                    <th>Interview Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="candidatesTableBody">
+                {% for c in candidates %}
+                <tr data-status="{{ c.verification_status }}" data-risk="{{ c.risk_level }}" data-decision="{{ c.recruiter_decision }}">
+                    <td>
+                        <div class="candidate-cell">
+                            <img src="{{ c.avatar or 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80' }}" alt="{{ c.name }}" class="candidate-avatar">
+                            <div>
+                                <div class="candidate-name">{{ c.name }}</div>
+                                <div class="candidate-email">{{ c.email }} • {{ c.location }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-main);">{{ c.position }}</div>
+                    </td>
+                    <td>
+                        <div class="score-indicator">
+                            <div class="score-circle-sm" style="
+                                {% if c.overall_resume_score >= 85 %}background: var(--success-bg); color: var(--success);
+                                {% elif c.overall_resume_score >= 65 %}background: var(--warning-bg); color: var(--warning);
+                                {% else %}background: var(--danger-bg); color: var(--danger);{% endif %}
+                            ">
+                                {{ c.overall_resume_score|round|int }}
+                            </div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">/100</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% set cert_count = c.resumes[0].certificates|length if c.resumes and c.resumes[0].certificates else 1 %}
+                        <span style="font-weight: 600; color: var(--text-main);"><i class="fa-solid fa-award text-primary"></i> {{ cert_count }} Detected</span>
+                    </td>
+                    <td>
+                        {% if c.verification_status == 'VERIFIED' %}
+                        <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> VERIFIED</span>
+                        {% elif c.verification_status == 'NEEDS MANUAL VERIFICATION' %}
+                        <span class="badge badge-manual"><i class="fa-solid fa-circle-exclamation"></i> NEEDS REVIEW</span>
+                        {% elif c.verification_status == 'SUSPICIOUS' %}
+                        <span class="badge badge-suspicious"><i class="fa-solid fa-triangle-exclamation"></i> FLAGGED</span>
+                        {% else %}
+                        <span class="badge badge-fake"><i class="fa-solid fa-circle-xmark"></i> INVALID / FAKE</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.risk_level == 'LOW' %}
+                        <span class="badge badge-risk-low"><i class="fa-solid fa-shield"></i> LOW ({{ c.risk_score|round|int }}%)</span>
+                        {% elif c.risk_level == 'MEDIUM' %}
+                        <span class="badge badge-risk-med"><i class="fa-solid fa-shield-halved"></i> MED ({{ c.risk_score|round|int }}%)</span>
+                        {% else %}
+                        <span class="badge badge-risk-high"><i class="fa-solid fa-triangle-exclamation"></i> HIGH ({{ c.risk_score|round|int }}%)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.interview_status == 'SCHEDULED' %}
+                        <span class="badge badge-verified"><i class="fa-solid fa-calendar-check"></i> SCHEDULED</span>
+                        {% elif c.interview_status == 'PENDING' %}
+                        <span class="badge badge-manual"><i class="fa-solid fa-clock"></i> PENDING</span>
+                        {% elif c.interview_status == 'CANCELLED' %}
+                        <span class="badge badge-fake"><i class="fa-solid fa-ban"></i> CANCELLED</span>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">Not Scheduled</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 0.4rem;">
+                            <a href="/candidate/{{ c.id }}" class="btn btn-sm btn-secondary" title="View Candidate Profile">
+                                <i class="fa-solid fa-eye"></i> View
+                            </a>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="setCandidateDecision({{ c.id }}, 'SHORTLISTED')" title="Shortlist">
+                                <i class="fa-solid fa-user-check"></i> Shortlist
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

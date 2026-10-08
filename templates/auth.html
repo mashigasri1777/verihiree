@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Recruiter Portal Authentication – VeriHire AI{% endblock %}
+
+{% block page_layout %}
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app);">
+    <!-- Nav Header -->
+    <header style="padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg-surface);">
+        <a href="/" class="brand-wrapper">
+            <div class="brand-shield-logo">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="brand-name">
+                VeriHire <span class="ai-tag">AI</span>
+            </div>
+        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="theme-toggle-btn" title="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <a href="/" class="btn btn-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i> Home</a>
+        </div>
+    </header>
+
+    <!-- Center Card -->
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+        <div class="card" style="max-width: 460px; width: 100%; padding: 2.5rem; box-shadow: var(--shadow-xl);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div class="brand-shield-logo" style="width: 52px; height: 52px; margin: 0 auto 1rem; font-size: 1.6rem;">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h1 style="font-size: 1.6rem; font-weight: 800;">Recruiter Portal</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Sign in to access candidate verification & interview pipelines</p>
+            </div>
+
+            <!-- 1-Click Demo Recruiter Login Button (Primary UX helper) -->
+            <div style="margin-bottom: 1.75rem;">
+                <a href="/dashboard" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+                    <i class="fa-solid fa-bolt"></i> Enter as Demo Recruiter (1-Click)
+                </a>
+                <div style="text-align: center; font-size: 0.775rem; color: var(--text-muted); margin-top: 0.35rem;">
+                    Instant access with sample candidates and verification telemetry.
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;">
+                <div style="flex: 1; height: 1px; background: var(--border);"></div>
+                <span style="font-size: 0.775rem; color: var(--text-muted); text-transform: uppercase;">Or sign in with email</span>
+                <div style="flex: 1; height: 1px; background: var(--border);"></div>
+            </div>
+
+            <form onsubmit="event.preventDefault(); window.location.href='/dashboard';">
+                <div class="form-group">
+                    <label class="form-label">Work Email</label>
+                    <input type="email" class="form-control" value="recruiter@enterprise-talent.com" required>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.35rem;">
+                        <label class="form-label" style="margin-bottom: 0;">Password</label>
+                        <a href="javascript:void(0)" onclick="alert('Password reset link sent to registered email address.')" style="font-size: 0.8rem; color: var(--primary-600);">Forgot password?</a>
+                    </div>
+                    <input type="password" class="form-control" value="••••••••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Role Category</label>
+                    <select class="form-control">
+                        <option value="recruiter">Technical Recruiter / Talent Lead</option>
+                        <option value="hiring_manager">Engineering Hiring Manager</option>
+                        <option value="hr_compliance">HR & Credential Compliance Officer</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to Account
+                </button>
+            </form>
+
+            <div style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 2rem;">
+                Need an enterprise organization account? <a href="javascript:void(0)" onclick="alert('Enterprise onboarding inquiry submitted.')" style="color: var(--primary-600); font-weight: 600;">Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

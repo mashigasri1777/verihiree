@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Audit History & Logs – VERIRESUME{% endblock %}
+
+{% block content %}
+<div class="container history-page-container">
+    <div class="page-header">
+        <span class="section-tag">SYSTEM AUDIT TRAIL</span>
+        <h1 class="page-title">Verification History & Logs</h1>
+        <p class="page-desc">
+            Complete database audit records of analyzed resumes, verification requests, and operational events.
+        </p>
+    </div>
+
+    <!-- Resumes History Table -->
+    <div class="history-card">
+        <div class="history-card-header">
+            <h3><i class="fa-solid fa-folder-open text-cyan"></i> Analyzed Resumes</h3>
+            <span class="text-muted">Total: {{ resumes|length }} records</span>
+        </div>
+
+        {% if resumes %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Candidate Name</th>
+                        <th>File Name</th>
+                        <th>Credentials Detected</th>
+                        <th>Upload Timestamp</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in resumes %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ r.candidate.name if r.candidate else "Unknown" }}</strong></td>
+                        <td>{{ r.filename }}</td>
+                        <td>
+                            <span class="badge badge-info">{{ r.certificates|length }} Certificate(s)</span>
+                        </td>
+                        <td>{{ r.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="/review/{{ r.id }}" class="btn btn-xs btn-secondary" title="Review">
+                                <i class="fa-solid fa-eye"></i> Review
+                            </a>
+                            <a href="/results/{{ r.id }}" class="btn btn-xs btn-primary" title="Dashboard">
+                                <i class="fa-solid fa-chart-simple"></i> Results
+                            </a>
+                            <a href="/report/{{ r.id }}" class="btn btn-xs btn-outline" title="Report">
+                                <i class="fa-solid fa-file-pdf"></i> Report
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state-card">
+            <p>No resumes uploaded yet. <a href="/upload">Upload a resume to begin</a>.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Operational Event Logs -->
+    <div class="history-card mt-30">
+        <div class="history-card-header">
+            <h3><i class="fa-solid fa-terminal text-cyan"></i> Operational Verification Logs</h3>
+            <span class="text-muted">Live SQLite Event Stream</span>
+        </div>
+
+        {% if logs %}
+        <div class="logs-console">
+            {% for log in logs %}
+            <div class="log-line">
+                <span class="log-time">{{ log.created_at.strftime('%H:%M:%S') }}</span>
+                <span class="log-tag log-{{ log.event_type|lower }}">{{ log.event_type }}</span>
+                <span class="log-msg">{{ log.description }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-card">
+            <p>No system logs recorded yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

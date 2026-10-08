@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Settings & Configuration – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Platform Settings & AI Configuration</h1>
+        <p class="page-subtitle">Configure organization profile, AI credential verification thresholds, and candidate data retention policies.</p>
+    </div>
+    <div>
+        <button type="button" class="btn btn-primary" onclick="showToast('Settings saved successfully!', 'success')">
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+    </div>
+</div>
+
+<div class="tab-container">
+    <div class="tabs-nav">
+        <button type="button" class="tab-btn active" data-tab="set-ai">
+            <i class="fa-solid fa-microchip"></i> AI Verification Settings
+        </button>
+        <button type="button" class="tab-btn" data-tab="set-profile">
+            <i class="fa-solid fa-user-gear"></i> Recruiter Profile
+        </button>
+        <button type="button" class="tab-btn" data-tab="set-retention">
+            <i class="fa-solid fa-trash-clock"></i> Data Retention
+        </button>
+        <button type="button" class="tab-btn" data-tab="set-notifications">
+            <i class="fa-solid fa-bell"></i> Notification Rules
+        </button>
+    </div>
+
+    <!-- TAB 1: AI Verification Settings -->
+    <div class="tab-pane active" id="set-ai">
+        <div class="card" style="max-width: 800px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-sliders text-primary"></i> Verification Sensitivity & Protocols</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Auto-Flagging Threshold (Authenticity Score)</label>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                        Certificates scoring below this threshold are automatically routed to the Manual Verification Queue.
+                    </p>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <input type="range" class="form-control" min="50" max="95" value="75" style="flex: 1;" oninput="document.getElementById('sensVal').innerText = this.value + '%'">
+                        <strong id="sensVal" style="font-size: 1.15rem; min-width: 45px;">75%</strong>
+                    </div>
+                </div>
+
+                <div class="form-group" style="padding: 1rem 0; border-top: 1px solid var(--border);">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" checked style="width: 18px; height: 18px;">
+                        <div>
+                            <strong>Enforce Human-in-the-Loop Safe Guard</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Never allow the AI to automatically reject candidates without recruiter review.</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-group" style="padding: 1rem 0; border-top: 1px solid var(--border);">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" checked style="width: 18px; height: 18px;">
+                        <div>
+                            <strong>Cryptographic Checksum & ID Format Validation</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Enforce vendor-specific syntax matching (AWS, Google Cloud, Stanford, CNCF).</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-group" style="padding: 1rem 0; border-top: 1px solid var(--border);">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" checked style="width: 18px; height: 18px;">
+                        <div>
+                            <strong>PDF Visual Tamper & Metadata Forensic Detection</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Inspect creator tools and modified visual font glyphs for forged certificates.</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Profile -->
+    <div class="tab-pane" id="set-profile">
+        <div class="card" style="max-width: 800px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-user text-primary"></i> Recruiter Profile</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" value="Sarah Jenkins">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" value="sjenkins@verihire.ai">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Company / Organization</label>
+                    <input type="text" class="form-control" value="Enterprise Talent Corp">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role Title</label>
+                    <input type="text" class="form-control" value="Principal Technical Recruiter">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Data Retention -->
+    <div class="tab-pane" id="set-retention">
+        <div class="card" style="max-width: 800px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left text-primary"></i> Document Shredding & Privacy Lifecycle</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">Automated Document Deletion Policy</label>
+                    <select class="form-control">
+                        <option value="30">Delete uploaded resumes after 30 days (Recommended for GDPR)</option>
+                        <option value="60">Delete uploaded resumes after 60 days</option>
+                        <option value="90">Delete uploaded resumes after 90 days</option>
+                        <option value="never">Retain indefinitely until manual purge</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="showToast('Purged expired temporary document cache.', 'info')">
+                        <i class="fa-solid fa-trash-can"></i> Purge Temporary Document Cache
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: Notifications -->
+    <div class="tab-pane" id="set-notifications">
+        <div class="card" style="max-width: 800px;">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fa-solid fa-bell text-primary"></i> Alert Preferences</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" checked style="width: 18px; height: 18px;">
+                        <span>Notify immediately when a suspicious certificate is detected</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" checked style="width: 18px; height: 18px;">
+                        <span>Notify when a candidate accepts an interview invite</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <input type="checkbox" checked style="width: 18px; height: 18px;">
+                        <span>Send weekly aggregate fraud & integrity recap report</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

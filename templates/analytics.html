@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Recruitment & Credential Analytics – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Recruitment & Fraud Intelligence Analytics</h1>
+        <p class="page-subtitle">Aggregate metrics on credential verification accuracy, risk distribution, and candidate funnel velocity.</p>
+    </div>
+    <div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Export Analytics Report
+        </button>
+    </div>
+</div>
+
+<!-- 8 Core Metrics Grid -->
+<div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Resumes Screened</div>
+            <div class="metric-value">1,248</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-arrow-up"></i> +18% MoM</div>
+        </div>
+        <div class="metric-icon-box primary"><i class="fa-solid fa-file-invoice"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Certs Verified</div>
+            <div class="metric-value">936</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-shield-check"></i> 75% verified</div>
+        </div>
+        <div class="metric-icon-box success"><i class="fa-solid fa-award"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Suspicious Flagged</div>
+            <div class="metric-value">182</div>
+            <div class="metric-sub warning"><i class="fa-solid fa-triangle-exclamation"></i> 14.6% flag rate</div>
+        </div>
+        <div class="metric-icon-box warning"><i class="fa-solid fa-flag"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">High Risk / Fake</div>
+            <div class="metric-value">130</div>
+            <div class="metric-sub negative"><i class="fa-solid fa-ban"></i> 10.4% fraudulent</div>
+        </div>
+        <div class="metric-icon-box danger"><i class="fa-solid fa-shield-slash"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Manual Review Rate</div>
+            <div class="metric-value">14.6%</div>
+            <div class="metric-sub warning"><i class="fa-solid fa-user-check"></i> Human oversight</div>
+        </div>
+        <div class="metric-icon-box warning"><i class="fa-solid fa-users-viewfinder"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Avg AI Latency</div>
+            <div class="metric-value">1.4s</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-bolt"></i> Real-time parsing</div>
+        </div>
+        <div class="metric-icon-box info"><i class="fa-solid fa-stopwatch"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Shortlisted</div>
+            <div class="metric-value">342</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-calendar-check"></i> Advanced to screen</div>
+        </div>
+        <div class="metric-icon-box success"><i class="fa-solid fa-user-plus"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Verification Accuracy</div>
+            <div class="metric-value">99.4%</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-circle-check"></i> Zero false rejects</div>
+        </div>
+        <div class="metric-icon-box primary"><i class="fa-solid fa-bullseye"></i></div>
+    </div>
+</div>
+
+<!-- 4 Analytics Charts Grid -->
+<div class="charts-grid">
+    <!-- Chart 1: Monthly Candidate Processing -->
+    <div class="card chart-col-6">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-chart-line text-primary"></i> Monthly Candidate Processing</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">2026 Ingestion Volume</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="monthlyProcChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Certificate Verification Results -->
+    <div class="card chart-col-6">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-chart-pie text-primary"></i> Certificate Verification Breakdown</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Authority Outcomes</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="certBreakdownChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Candidate Risk Distribution -->
+    <div class="card chart-col-6">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-gauge-high text-primary"></i> Candidate Risk Distribution</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Integrity Spectrum</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="riskDistChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 4: Recruitment Funnel -->
+    <div class="card chart-col-6">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-filter text-primary"></i> Hiring & Verification Funnel</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Pipeline Conversion</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="funnelChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Monthly Processing
+    new Chart(document.getElementById("monthlyProcChart"), {
+        type: "bar",
+        data: {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"],
+            datasets: [
+                { label: "Resumes Uploaded", data: [65, 82, 110, 135, 160, 190, 210, 245, 270, 310], backgroundColor: "#4F46E5" },
+                { label: "Certificates Audited", data: [52, 70, 95, 118, 142, 165, 185, 215, 240, 280], backgroundColor: "#10B981" }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+    });
+
+    // 2. Certificate Breakdown
+    new Chart(document.getElementById("certBreakdownChart"), {
+        type: "doughnut",
+        data: {
+            labels: ["Verified (75%)", "Needs Review (14.6%)", "Suspicious / Fake (10.4%)"],
+            datasets: [{
+                data: [936, 182, 130],
+                backgroundColor: ["#10B981", "#F59E0B", "#EF4444"]
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+    });
+
+    // 3. Risk Distribution
+    new Chart(document.getElementById("riskDistChart"), {
+        type: "pie",
+        data: {
+            labels: ["Low Risk (72%)", "Medium Risk (18%)", "High Risk (10%)"],
+            datasets: [{
+                data: [898, 224, 126],
+                backgroundColor: ["#10B981", "#F59E0B", "#DC2626"]
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+    });
+
+    // 4. Hiring Funnel
+    new Chart(document.getElementById("funnelChart"), {
+        type: "bar",
+        indexAxis: 'y',
+        data: {
+            labels: ["Resumes Ingested", "Credentials Audited", "Manual Reviewed", "Shortlisted", "Offer Extended"],
+            datasets: [{
+                label: "Candidates",
+                data: [1248, 936, 182, 342, 94],
+                backgroundColor: ["#3B82F6", "#6366F1", "#F59E0B", "#10B981", "#059669"],
+                borderRadius: 6
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+});
+</script>
+{% endblock %}

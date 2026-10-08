@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Queue – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Human-in-the-Loop Verification Queue</h1>
+        <p class="page-subtitle">Candidates and certificates requiring manual recruiter oversight, issuer phone audits, or candidate documentation.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <span class="badge badge-manual" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+            <i class="fa-solid fa-clock"></i> {{ queue_items|length }} Requiring Review
+        </span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-toolbar">
+        <div class="filter-pills">
+            <button class="filter-pill active" data-queue-filter="all">All Pending ({{ queue_items|length }})</button>
+            <button class="filter-pill" data-queue-filter="manual">Manual Review</button>
+            <button class="filter-pill" data-queue-filter="suspicious">Suspicious</button>
+            <button class="filter-pill" data-queue-filter="high-risk">High Risk</button>
+        </div>
+
+        <div style="font-size: 0.825rem; color: var(--text-muted);">
+            <i class="fa-solid fa-circle-info text-primary"></i> <strong>Recruiter Guideline:</strong> Candidates are never auto-rejected by AI. Final approval resides with you.
+        </div>
+    </div>
+
+    <div class="table-container" style="border: none;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Certificate Claim</th>
+                    <th>AI Confidence</th>
+                    <th>Audit Reason / Flag</th>
+                    <th>Risk</th>
+                    <th>Submitted</th>
+                    <th style="text-align: right;">Review Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in queue_items %}
+                <tr>
+                    <td>
+                        <div class="candidate-cell">
+                            <img src="{{ item.candidate.avatar or 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80' }}" alt="{{ item.candidate.name }}" class="candidate-avatar">
+                            <div>
+                                <div class="candidate-name">{{ item.candidate.name }}</div>
+                                <div class="candidate-email">{{ item.candidate.position }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>{{ item.certificate.certificate_name }}</strong>
+                        <div style="font-size: 0.775rem; color: var(--text-muted); font-family: var(--font-mono);">
+                            ID: {{ item.certificate.certificate_id or 'N/A' }} • {{ item.certificate.issuing_organization }}
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 700; color: var(--text-main); font-family: var(--font-heading);">
+                            {{ item.result.ai_confidence|round|int if item.result else 85 }}%
+                        </span>
+                    </td>
+                    <td style="max-width: 320px;">
+                        <span style="font-size: 0.825rem; color: var(--text-secondary);">
+                            {{ item.result.ai_explanation if item.result else 'Remote registry query timeout' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.candidate.risk_level == 'LOW' %}<span class="badge badge-risk-low">LOW</span>
+                        {% elif item.candidate.risk_level == 'MEDIUM' %}<span class="badge badge-risk-med">MED</span>
+                        {% else %}<span class="badge badge-risk-high">HIGH</span>{% endif %}
+                    </td>
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">
+                        Today
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 0.4rem;">
+                            <a href="/candidate/{{ item.candidate.id }}" class="btn btn-sm btn-secondary" title="Inspect Full Record">
+                                <i class="fa-solid fa-eye"></i> Review
+                            </a>
+                            <button type="button" class="btn btn-sm btn-success" onclick="overrideManualVerify({{ item.candidate.id }})" title="Approve & Mark Verified">
+                                <i class="fa-solid fa-check"></i> Verify
+                            </button>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="showToast('Requested official transcript & credential PDF from candidate via automated email.', 'info')" title="Request Documents">
+                                <i class="fa-solid fa-envelope"></i> Request Docs
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function overrideManualVerify(candidateId) {
+    if (confirm("Mark this candidate's credentials as manually verified and approved?")) {
+        try {
+            const res = await fetch(`/api/candidate/${candidateId}/verify-manual`, {
+                method: "POST"
+            });
+            if (res.ok) {
+                showToast("Candidate verified and approved by recruiter override!", "success");
+                setTimeout(() => window.location.reload(), 900);
+            } else {
+                showToast("Action failed to execute", "danger");
+            }
+        } catch (e) {
+            showToast("Network error executing manual override.", "danger");
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Technical Architecture & Viva Guide – VERIRESUME{% endblock %}
+
+{% block content %}
+<div class="container tech-page-container">
+    <div class="page-header">
+        <span class="section-tag">ADVANCED PROGRAMMING PRACTICE PROJECT</span>
+        <h1 class="page-title">Technical Architecture & Viva Guide</h1>
+        <p class="page-desc">
+            Comprehensive breakdown of how the 5 required core Python paradigms are deeply integrated into the VERIRESUME codebase.
+        </p>
+    </div>
+
+    <!-- 5 Quick Jump Nav Tabs -->
+    <div class="tech-nav-bar">
+        <a href="#functional" class="tech-nav-pill"><i class="fa-solid fa-function"></i> 1. Functional Programming</a>
+        <a href="#socket" class="tech-nav-pill"><i class="fa-solid fa-network-wired"></i> 2. TCP Socket Programming</a>
+        <a href="#multiprocessing" class="tech-nav-pill"><i class="fa-solid fa-bolt"></i> 3. Multiprocessing</a>
+        <a href="#sympy" class="tech-nav-pill"><i class="fa-solid fa-square-root-variable"></i> 4. SymPy Mathematics</a>
+        <a href="#tkinter" class="tech-nav-pill"><i class="fa-solid fa-desktop"></i> 5. Tkinter Desktop GUI</a>
+    </div>
+
+    <!-- 1. Functional Programming Section -->
+    <section id="functional" class="tech-section-block">
+        <div class="tech-block-header">
+            <div class="tech-block-num">01</div>
+            <div>
+                <h2>Functional Programming</h2>
+                <div class="tech-filepath"><code>functional/functional_processing.py</code></div>
+            </div>
+        </div>
+
+        <div class="tech-explanation">
+            <p>
+                Functional Programming is used to transform raw certificate records, filter invalid formats, normalize fields immutably, and aggregate overall verification metrics.
+            </p>
+            <div class="fp-concepts-grid">
+                <div class="fp-concept-card">
+                    <h4>Pure Functions</h4>
+                    <p><code>normalize_string()</code>, <code>normalize_certificate_name()</code>, <code>normalize_certificate_dict()</code>. Deterministic, zero side-effects, guaranteeing referential transparency.</p>
+                </div>
+                <div class="fp-concept-card">
+                    <h4>Higher-Order Functions</h4>
+                    <p><code>compose()</code>, <code>create_score_filter(min_score)</code>, <code>create_status_filter(status)</code>. Functions returning closure predicate functions.</p>
+                </div>
+                <div class="fp-concept-card">
+                    <h4>map(), filter(), reduce()</h4>
+                    <p><code>filter(is_valid_certificate_structure, certs)</code><br><code>map(extract_scores, results)</code><br><code>reduce(lambda a,b: a+b, scores)</code> to compute sum and average.</p>
+                </div>
+            </div>
+
+            <div class="code-preview-box">
+                <div class="code-header">
+                    <span>Python Code: Functional Pipeline</span>
+                </div>
+                <pre><code>def functional_verification_pipeline(raw_certificates, verification_fn):
+    # Step 1: Map to normalized immutable records
+    normalized = list(map(normalize_certificate_dict, raw_certificates))
+    
+    # Step 2: Filter out malformed entries
+    valid = list(filter(is_valid_certificate_structure, normalized))
+    
+    # Step 3: Map verification function across items
+    results = list(map(verification_fn, valid))
+    
+    # Step 4: Reduce to compute summary statistics
+    scores = list(map(lambda r: float(r["score"]), results))
+    total_score = reduce(lambda acc, val: acc + val, scores, 0.0)
+    avg_score = total_score / len(scores) if scores else 0.0
+    return {"results": results, "average": avg_score}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Socket Programming Section -->
+    <section id="socket" class="tech-section-block">
+        <div class="tech-block-header">
+            <div class="tech-block-num">02</div>
+            <div>
+                <h2>TCP Socket Programming (Client–Server Architecture)</h2>
+                <div class="tech-filepath"><code>networking/socket_server.py</code> & <code>networking/socket_client.py</code></div>
+            </div>
+        </div>
+
+        <div class="tech-explanation">
+            <p>
+                Implemented using Python's native <code>socket</code> library to establish a true decoupled Client-Server network protocol.
+            </p>
+            <ul class="tech-feature-list">
+                <li><strong>Protocol:</strong> TCP (<code>AF_INET</code>, <code>SOCK_STREAM</code>) on port <code>9099</code>.</li>
+                <li><strong>Framing:</strong> 4-byte big-endian length prefix header (<code>struct.pack('!I', len)</code>) followed by UTF-8 encoded JSON payload to guarantee complete message delivery over stream fragmentation.</li>
+                <li><strong>Concurrency:</strong> Multi-threaded connection handler spawning daemon threads per client.</li>
+                <li><strong>Fault Tolerance:</strong> Client timeouts (<code>client_sock.settimeout(5.0)</code>) and structured offline diagnostics if the verification daemon is unreachable.</li>
+            </ul>
+
+            <div class="code-preview-box">
+                <div class="code-header">
+                    <span>Python Code: TCP Socket Server & Client Handshake</span>
+                </div>
+                <pre><code># Low-level TCP Server creation
+self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+self.server_socket.bind((self.host, self.port))
+self.server_socket.listen(128)
+client_socket, client_address = self.server_socket.accept()
+
+# Client JSON Transmission with 4-byte Big-Endian Length Header
+payload = json.dumps(req_dict).encode('utf-8')
+header = struct.pack('!I', len(payload))
+client_sock.sendall(header + payload)</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Multiprocessing Section -->
+    <section id="multiprocessing" class="tech-section-block">
+        <div class="tech-block-header">
+            <div class="tech-block-num">03</div>
+            <div>
+                <h2>Multiprocessing (Parallel Worker Pool)</h2>
+                <div class="tech-filepath"><code>multiprocessing_module/parallel_verifier.py</code></div>
+            </div>
+        </div>
+
+        <div class="tech-explanation">
+            <p>
+                When a resume contains multiple credentials, VERIRESUME uses <code>multiprocessing.Pool</code> to distribute verification jobs across available CPU cores concurrently.
+            </p>
+            <ul class="tech-feature-list">
+                <li><strong>Pool Execution:</strong> <code>with Pool(processes=workers) as pool: results = pool.map(worker_fn, certs)</code></li>
+                <li><strong>Worker Audit Trail:</strong> Each worker records its distinct operating system Process ID (<code>os.getpid()</code>) and execution duration.</li>
+                <li><strong>Windows Compatibility:</strong> Uses top-level picklable functions with guarded main execution (<code>if __name__ == '__main__':</code>).</li>
+            </ul>
+
+            <div class="code-preview-box">
+                <div class="code-header">
+                    <span>Python Code: Multiprocessing Pool Worker Task</span>
+                </div>
+                <pre><code>def verify_certificate_worker_task(certificate):
+    start = time.perf_counter()
+    pid = os.getpid() # Capture worker OS Process ID
+    
+    # Send TCP socket request from within worker process
+    client = SocketVerificationClient()
+    result = client.verify_certificate(certificate)
+    
+    result["multiprocessing_meta"] = {
+        "worker_pid": pid,
+        "duration_ms": round((time.perf_counter() - start) * 1000, 2)
+    }
+    return result</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. SymPy Mathematics Section -->
+    <section id="sympy" class="tech-section-block">
+        <div class="tech-block-header">
+            <div class="tech-block-num">04</div>
+            <div>
+                <h2>SymPy Symbolic Mathematics Scoring Engine</h2>
+                <div class="tech-filepath"><code>mathematics/authenticity_model.py</code></div>
+            </div>
+        </div>
+
+        <div class="tech-explanation">
+            <p>
+                SymPy constructs the mathematical authenticity equation symbolically, calculates partial derivatives for sensitivity analysis, and evaluates substituted numerical scores.
+            </p>
+            
+            <div class="math-callout">
+                <h4>Symbolic Scoring Formula:</h4>
+                <div class="latex-eq">
+                    $$\text{Score} = 30 \cdot \text{name\_match} + 30 \cdot \text{certificate\_id\_match} + 20 \cdot \text{course\_match} + 10 \cdot \text{organization\_match} + 10 \cdot \text{date\_match}$$
+                </div>
+            </div>
+
+            <div class="tech-grid-2">
+                <div class="info-card">
+                    <h4>Symbolic Variables</h4>
+                    <p><code>name_match, certificate_id_match, course_match, organization_match, date_match = sp.symbols(...)</code></p>
+                </div>
+                <div class="info-card">
+                    <h4>Sensitivity Analysis</h4>
+                    <p>Partial derivatives $\frac{\partial S}{\partial v_i}$ calculated via <code>sp.diff()</code> to verify field weight contributions.</p>
+                </div>
+            </div>
+
+            <div class="code-preview-box">
+                <div class="code-header">
+                    <span>Python Code: SymPy Substitution & Evaluation</span>
+                </div>
+                <pre><code># Symbolic Evaluation with SymPy
+substituted_expr = self.score_expression.subs({
+    self.name_match: name_coef,
+    self.certificate_id_match: id_coef,
+    self.course_match: course_coef,
+    self.organization_match: org_coef,
+    self.date_match: date_coef
+})
+numerical_score = float(substituted_expr.evalf()) # Exact calculation</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Tkinter Admin GUI Section -->
+    <section id="tkinter" class="tech-section-block">
+        <div class="tech-block-header">
+            <div class="tech-block-num">05</div>
+            <div>
+                <h2>Tkinter Desktop Administration GUI</h2>
+                <div class="tech-filepath"><code>gui/tkinter_app.py</code></div>
+            </div>
+        </div>
+
+        <div class="tech-explanation">
+            <p>
+                A standalone desktop admin application built with Python's built-in <code>tkinter</code> and <code>ttk</code> GUI toolkits.
+            </p>
+            <ul class="tech-feature-list">
+                <li><strong>Socket Client Integration:</strong> Communicates over TCP sockets with the same backend verification server as the web interface.</li>
+                <li><strong>Interactive Controls:</strong> Document file chooser (<code>filedialog</code>), preset test scenario loaders, and manual field editing.</li>
+                <li><strong>Visual Audit History:</strong> Interactive <code>ttk.Treeview</code> data table logging all verification transactions.</li>
+            </ul>
+
+            <div class="code-preview-box">
+                <div class="code-header">
+                    <span>How to Launch the Tkinter GUI:</span>
+                </div>
+                <pre><code># Terminal Command:
+python run_gui.py
+# or
+python -m gui.tkinter_app</code></pre>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

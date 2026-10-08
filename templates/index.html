@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}VERIRESUME – Intelligent Resume & Certificate Authenticity Verification System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-glow"></div>
+    <div class="hero-container">
+        <div class="hero-badge">
+            <span class="pulse-dot"></span>
+            <span>CYBERSECURITY & CREDENTIAL INTEGRITY SYSTEM</span>
+        </div>
+        <h1 class="hero-title">
+            Intelligent Resume & Certificate <br>
+            <span class="gradient-text">Authenticity Verification</span>
+        </h1>
+        <p class="hero-subtitle">
+            Upload candidate resumes to automatically extract certifications, query official verification registries over high-speed TCP sockets, compute mathematical authenticity scores with SymPy, and process multi-credential batches with multiprocessing.
+        </p>
+
+        <div class="hero-actions">
+            <a href="/upload" class="btn btn-lg btn-primary">
+                <i class="fa-solid fa-file-shield"></i> Verify Resume Now
+            </a>
+            <a href="/tech" class="btn btn-lg btn-outline">
+                <i class="fa-solid fa-diagram-project"></i> Explore Architecture
+            </a>
+        </div>
+
+        <!-- Live Metric Counters -->
+        <div class="hero-stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div>
+                <div class="stat-val">{{ total_resumes }}</div>
+                <div class="stat-lbl">Resumes Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-certificate"></i></div>
+                <div class="stat-val">{{ total_certs }}</div>
+                <div class="stat-lbl">Certificates Extracted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-circle-check text-emerald"></i></div>
+                <div class="stat-val">{{ verified_certs }}</div>
+                <div class="stat-lbl">Verified Authenticated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-network-wired text-cyan"></i></div>
+                <div class="stat-val">{% if socket_alive %}TCP 9099{% else %}OFFLINE{% endif %}</div>
+                <div class="stat-lbl">Socket Verification Server</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Five Core Advanced Python Paradigms -->
+<section class="section tech-banner-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">ADVANCED PROGRAMMING PRACTICE</span>
+            <h2 class="section-title">5 Core Architectural Pillars</h2>
+            <p class="section-desc">
+                Every component fulfills a concrete, functional role in the verification pipeline.
+            </p>
+        </div>
+
+        <div class="tech-grid-5">
+            <div class="tech-card">
+                <div class="tech-card-icon"><i class="fa-solid fa-function text-cyan"></i></div>
+                <h3>1. Functional Programming</h3>
+                <p>Pure functions, map, filter, and reduce transformations for certificate normalization and aggregate scoring pipelines.</p>
+                <span class="code-ref">functional/functional_processing.py</span>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-card-icon"><i class="fa-solid fa-network-wired text-cyan"></i></div>
+                <h3>2. Socket Programming</h3>
+                <p>Dedicated TCP verification server and client using low-level Python <code>socket</code>, AF_INET, SOCK_STREAM & JSON framing.</p>
+                <span class="code-ref">networking/socket_server.py</span>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-card-icon"><i class="fa-solid fa-bolt text-cyan"></i></div>
+                <h3>3. Multiprocessing</h3>
+                <p>Parallel batch verification distributing multiple certificate jobs across CPU cores via <code>multiprocessing.Pool</code>.</p>
+                <span class="code-ref">multiprocessing_module/parallel_verifier.py</span>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-card-icon"><i class="fa-solid fa-square-root-variable text-cyan"></i></div>
+                <h3>4. SymPy Math Engine</h3>
+                <p>Symbolic mathematical formulation, substitution, and partial derivatives for exact multi-variable authenticity scoring.</p>
+                <span class="code-ref">mathematics/authenticity_model.py</span>
+            </div>
+
+            <div class="tech-card">
+                <div class="tech-card-icon"><i class="fa-solid fa-desktop text-cyan"></i></div>
+                <h3>5. Tkinter Desktop GUI</h3>
+                <p>Standalone desktop administration client with file import, manual audit forms, and direct TCP socket communication.</p>
+                <span class="code-ref">gui/tkinter_app.py</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section how-it-works-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">VERIFICATION WORKFLOW</span>
+            <h2 class="section-title">How VERIRESUME Works</h2>
+            <p class="section-desc">End-to-end automated credential authentication in 4 streamlined steps.</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">01</div>
+                <div class="step-icon"><i class="fa-solid fa-file-lines"></i></div>
+                <h3>Resume Parsing & Extraction</h3>
+                <p>PyMuPDF and python-docx extract candidate contact info, skills, education, and credentials.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">02</div>
+                <div class="step-icon"><i class="fa-solid fa-microchip"></i></div>
+                <h3>Multiprocessing Dispatch</h3>
+                <p>Detected certificates are dispatched concurrently across OS worker processes to maximize throughput.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">03</div>
+                <div class="step-icon"><i class="fa-solid fa-server"></i></div>
+                <h3>TCP Socket Registry Query</h3>
+                <p>Workers communicate over low-level TCP sockets to compare candidate data against official registries.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">04</div>
+                <div class="step-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                <h3>SymPy Math & FP Report</h3>
+                <p>SymPy evaluates the exact authenticity equation and Functional pipelines generate the final audit report.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Security & Academic Privacy Banner -->
+<section class="section security-section">
+    <div class="container">
+        <div class="security-card">
+            <div class="security-icon"><i class="fa-solid fa-shield-cat"></i></div>
+            <div class="security-content">
+                <h3>Enterprise Security & Academic Privacy Assurance</h3>
+                <p>
+                    All uploaded files are assigned unique UUIDs and kept strictly private in isolated local storage.
+                    The system operates in Offline Mock Verification mode by default to ensure complete testability without external network dependencies.
+                </p>
+            </div>
+            <div class="security-action">
+                <a href="/upload" class="btn btn-primary">Start Verification</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

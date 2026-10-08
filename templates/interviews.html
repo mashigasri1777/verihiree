@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Management – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Interview Coordination & Tracking</h1>
+        <p class="page-subtitle">Manage technical interviews, executive debriefs, and automated invitation dispatches for verified talent.</p>
+    </div>
+    <div>
+        <button type="button" class="btn btn-primary" onclick="openModal('quickScheduleModal')">
+            <i class="fa-solid fa-calendar-plus"></i> Schedule New Interview
+        </button>
+    </div>
+</div>
+
+<div class="metrics-grid">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Scheduled Rounds</div>
+            <div class="metric-value">{{ scheduled_count|default(3) }}</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-calendar-check"></i> Confirmed on calendar</div>
+        </div>
+        <div class="metric-icon-box primary"><i class="fa-solid fa-video"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Pending Invitations</div>
+            <div class="metric-value">{{ pending_count|default(1) }}</div>
+            <div class="metric-sub warning"><i class="fa-solid fa-clock"></i> Awaiting candidate RSVP</div>
+        </div>
+        <div class="metric-icon-box warning"><i class="fa-solid fa-envelope-open-text"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Completed This Week</div>
+            <div class="metric-value">8</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-check-double"></i> Feedback logged</div>
+        </div>
+        <div class="metric-icon-box success"><i class="fa-solid fa-circle-check"></i></div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Avg Pipeline Velocity</div>
+            <div class="metric-value">4.2d</div>
+            <div class="metric-sub positive"><i class="fa-solid fa-bolt"></i> Upload to Final Round</div>
+        </div>
+        <div class="metric-icon-box info"><i class="fa-solid fa-gauge"></i></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-list-timeline text-primary"></i> Scheduled Candidate Interviews</h3>
+        <span class="badge badge-verified">Google Meet / Zoom Synced</span>
+    </div>
+
+    <div class="table-container" style="border: none;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Interview Round</th>
+                    <th>Interviewer</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Meeting Link</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in interviews %}
+                <tr>
+                    <td>
+                        <div class="candidate-cell">
+                            <img src="{{ inv.candidate.avatar or 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80' }}" alt="{{ inv.candidate.name }}" class="candidate-avatar">
+                            <div>
+                                <div class="candidate-name">{{ inv.candidate.name }}</div>
+                                <div class="candidate-email">{{ inv.candidate.position }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><strong>{{ inv.interview_type }}</strong></td>
+                    <td>
+                        <div>{{ inv.interviewer_name }}</div>
+                        <div style="font-size: 0.775rem; color: var(--text-muted);">{{ inv.interviewer_email }}</div>
+                    </td>
+                    <td>
+                        <div><i class="fa-regular fa-calendar text-primary"></i> {{ inv.scheduled_at.strftime('%a, %b %d, %Y') if inv.scheduled_at else 'Upcoming' }}</div>
+                        <div style="font-size: 0.775rem; color: var(--text-muted);"><i class="fa-regular fa-clock"></i> {{ inv.scheduled_at.strftime('%I:%M %p UTC') if inv.scheduled_at else '10:00 AM' }}</div>
+                    </td>
+                    <td>
+                        {% if inv.status == 'SCHEDULED' %}<span class="badge badge-verified"><i class="fa-solid fa-calendar-check"></i> SCHEDULED</span>
+                        {% elif inv.status == 'PENDING' %}<span class="badge badge-manual"><i class="fa-solid fa-clock"></i> PENDING</span>
+                        {% else %}<span class="badge badge-fake">{{ inv.status }}</span>{% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ inv.meeting_link }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size: 0.8rem;">
+                            <i class="fa-solid fa-video text-primary"></i> Launch Meet
+                        </a>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/candidate/{{ inv.candidate_id }}" class="btn btn-sm btn-secondary">
+                            <i class="fa-solid fa-id-card"></i> Candidate
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Quick Schedule Modal -->
+<div class="modal-overlay" id="quickScheduleModal">
+    <div class="modal-dialog">
+        <form onsubmit="submitInterviewSchedule(event, 1)">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-calendar-plus text-primary"></i> Schedule Candidate Interview</h3>
+                <button type="button" class="modal-close-btn" onclick="closeModal('quickScheduleModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Candidate</label>
+                    <select name="candidate_id" class="form-control">
+                        {% for c in candidates %}
+                        <option value="{{ c.id }}">{{ c.name }} ({{ c.position }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Round Type</label>
+                    <select name="interview_type" class="form-control">
+                        <option value="System Design & Architecture">System Design & Architecture</option>
+                        <option value="Technical Screening Round">Technical Screening Round</option>
+                        <option value="Live Coding & Algorithms">Live Coding & Algorithms</option>
+                        <option value="HR & Culture Fit">HR & Culture Fit</option>
+                        <option value="Executive Final Round">Executive Final Round</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Interviewer</label>
+                    <input type="text" name="interviewer_name" class="form-control" value="Sarah Jenkins (Principal Recruiter)" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date & Time</label>
+                    <input type="datetime-local" name="scheduled_date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Discussion topics, technical challenge link..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('quickScheduleModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Send & Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

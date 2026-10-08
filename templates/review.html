@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Review Certificates – VERIRESUME{% endblock %}
+
+{% block content %}
+<div class="container review-page-container">
+    <!-- Header -->
+    <div class="review-header">
+        <div>
+            <span class="section-tag">RESUME ANALYSIS COMPLETE</span>
+            <h1 class="page-title">Candidate Profile & Detected Credentials</h1>
+            <p class="page-desc">
+                Review extracted credentials before initiating parallel verification over the TCP socket network.
+            </p>
+        </div>
+        <div class="header-action">
+            <button class="btn btn-lg btn-success pulse-btn" id="verifyAllBtn" onclick="triggerBatchVerification('{{ resume.id }}')">
+                <i class="fa-solid fa-bolt"></i> Verify All Credentials (Parallel)
+            </button>
+        </div>
+    </div>
+
+    <!-- Candidate Profile Summary Card -->
+    <div class="profile-card">
+        <div class="profile-avatar">
+            <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div class="profile-info">
+            <h2>{{ candidate.name or "Candidate" }}</h2>
+            <div class="profile-meta">
+                <span><i class="fa-solid fa-envelope"></i> {{ candidate.email or "Not detected" }}</span>
+                <span><i class="fa-solid fa-phone"></i> {{ candidate.phone or "Not detected" }}</span>
+                <span><i class="fa-solid fa-file-lines"></i> {{ resume.filename }} ({{ (resume.file_size_bytes / 1024)|round(1) }} KB)</span>
+            </div>
+
+            {% if skills %}
+            <div class="skills-wrap">
+                <span class="skills-label">Extracted Skills:</span>
+                {% for skill in skills[:12] %}
+                <span class="skill-tag">{{ skill }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Certificate Cards List -->
+    <div class="certificates-section">
+        <div class="section-sub-header">
+            <h3><i class="fa-solid fa-certificate text-cyan"></i> Detected Credentials ({{ certificates|length }})</h3>
+            <span class="text-muted">Targeting Socket Server: <strong>127.0.0.1:9099</strong></span>
+        </div>
+
+        {% if certificates %}
+        <div class="cert-grid">
+            {% for cert in certificates %}
+            <div class="cert-card" id="certCard-{{ cert.id }}">
+                <div class="cert-card-header">
+                    <div class="cert-type-badge">
+                        <i class="fa-solid fa-award"></i> Certificate #{{ loop.index }}
+                    </div>
+                    <div class="cert-status-badge" id="certStatusBadge-{{ cert.id }}">
+                        {% if cert.verification_result %}
+                            <span class="status-pill status-{{ cert.verification_result.status|lower|replace(' ', '-') }}">
+                                {{ cert.verification_result.status }} ({{ cert.verification_result.authenticity_score|int }}%)
+                            </span>
+                        {% else %}
+                            <span class="status-pill status-pending">PENDING VERIFICATION</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h4 class="cert-title">{{ cert.certificate_name }}</h4>
+
+                <div class="cert-details-grid">
+                    <div class="cert-detail-item">
+                        <span class="detail-label">Candidate Name</span>
+                        <span class="detail-val">{{ cert.candidate_name or candidate.name }}</span>
+                    </div>
+                    <div class="cert-detail-item">
+                        <span class="detail-label">Certificate ID</span>
+                        <span class="detail-val code-val">{{ cert.certificate_id or "N/A" }}</span>
+                    </div>
+                    <div class="cert-detail-item">
+                        <span class="detail-label">Issuing Authority</span>
+                        <span class="detail-val">{{ cert.issuing_organization or "N/A" }}</span>
+                    </div>
+                    <div class="cert-detail-item">
+                        <span class="detail-label">Issue Date</span>
+                        <span class="detail-val">{{ cert.issue_date or "N/A" }}</span>
+                    </div>
+                </div>
+
+                {% if cert.verification_url %}
+                <div class="cert-url-row">
+                    <i class="fa-solid fa-link"></i>
+                    <a href="{{ cert.verification_url }}" target="_blank" class="cert-url-link">{{ cert.verification_url }}</a>
+                </div>
+                {% endif %}
+
+                <div class="cert-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="verifySingleCert({{ cert.id }}, '{{ cert.certificate_name }}', '{{ cert.candidate_name or candidate.name }}', '{{ cert.certificate_id }}', '{{ cert.issuing_organization }}', '{{ cert.issue_date }}', '{{ cert.verification_url }}')">
+                        <i class="fa-solid fa-shield-check"></i> Verify Credential
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state-card">
+            <i class="fa-solid fa-circle-question empty-icon"></i>
+            <h3>No Certificates Detected in Document</h3>
+            <p>The parser extracted text but did not recognize explicit certificate patterns or credential IDs.</p>
+            <a href="/upload" class="btn btn-secondary">Upload Another Resume</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Real-time Verification Progress Modal Overlay -->
+<div class="modal-overlay" id="verificationModal" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-title">
+                <i class="fa-solid fa-microchip text-cyan fa-spin"></i>
+                <span>Multiprocessing & Socket Verification In Progress</span>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <p class="modal-desc">
+                Distributing verification jobs across worker processes via <code>multiprocessing.Pool</code> and connecting to TCP Socket Server...
+            </p>
+
+            <!-- 8 Step Pipeline Tracker -->
+            <div class="pipeline-steps-list">
+                <div class="pipe-step active" id="step1">
+                    <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                    <div class="step-text">1. Resume document analyzed & parsed</div>
+                </div>
+                <div class="pipe-step active" id="step2">
+                    <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+                    <div class="step-text">2. Certification claims detected</div>
+                </div>
+                <div class="pipe-step active" id="step3">
+                    <div class="step-circle"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                    <div class="step-text">3. Multiprocessing worker jobs created</div>
+                </div>
+                <div class="pipe-step" id="step4">
+                    <div class="step-circle"><i class="fa-solid fa-network-wired"></i></div>
+                    <div class="step-text">4. TCP Socket verification server contacted</div>
+                </div>
+                <div class="pipe-step" id="step5">
+                    <div class="step-circle"><i class="fa-solid fa-database"></i></div>
+                    <div class="step-text">5. Official registry authority checked</div>
+                </div>
+                <div class="pipe-step" id="step6">
+                    <div class="step-circle"><i class="fa-solid fa-code-compare"></i></div>
+                    <div class="step-text">6. Candidate data normalized & compared</div>
+                </div>
+                <div class="pipe-step" id="step7">
+                    <div class="step-circle"><i class="fa-solid fa-calculator"></i></div>
+                    <div class="step-text">7. SymPy mathematical authenticity score calculated</div>
+                </div>
+                <div class="pipe-step" id="step8">
+                    <div class="step-circle"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <div class="step-text">8. Functional Programming final report aggregated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

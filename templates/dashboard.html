@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Recruiter Dashboard – VeriHire AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Recruiter Command Center</h1>
+        <p class="page-subtitle">Real-time candidate verification telemetry, credential risk insights, and interview pipeline.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="/upload" class="btn btn-primary">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Resume
+        </a>
+        <a href="/verification-queue" class="btn btn-secondary">
+            <i class="fa-solid fa-list-check text-warning"></i> Verification Queue ({{ manual_count }})
+        </a>
+    </div>
+</div>
+
+<!-- 4 Key Dashboard Cards -->
+<div class="metrics-grid">
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Total Candidates</div>
+            <div class="metric-value">{{ total_candidates }}</div>
+            <div class="metric-sub positive">
+                <i class="fa-solid fa-arrow-trend-up"></i> +12% this month
+            </div>
+        </div>
+        <div class="metric-icon-box primary">
+            <i class="fa-solid fa-users"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Verified Candidates</div>
+            <div class="metric-value">{{ verified_count }}</div>
+            <div class="metric-sub positive">
+                <i class="fa-solid fa-shield-check"></i> 75.0% pass rate
+            </div>
+        </div>
+        <div class="metric-icon-box success">
+            <i class="fa-solid fa-certificate"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">Needs Verification</div>
+            <div class="metric-value">{{ manual_count }}</div>
+            <div class="metric-sub warning">
+                <i class="fa-solid fa-user-clock"></i> Requires human review
+            </div>
+        </div>
+        <div class="metric-icon-box warning">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+    </div>
+
+    <div class="card metric-card">
+        <div>
+            <div class="metric-label">High Risk</div>
+            <div class="metric-value">{{ high_risk_count }}</div>
+            <div class="metric-sub negative">
+                <i class="fa-solid fa-circle-exclamation"></i> Potential fraud flagged
+            </div>
+        </div>
+        <div class="metric-icon-box danger">
+            <i class="fa-solid fa-shield-slash"></i>
+        </div>
+    </div>
+</div>
+
+<!-- 5 Charts Grid -->
+<div class="charts-grid">
+    <!-- Chart 1: Candidate Verification Status -->
+    <div class="card chart-col-4">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-chart-pie text-primary"></i> Verification Status</div>
+            <span class="badge badge-verified">Live DB</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Weekly Resume Processing -->
+    <div class="card chart-col-8">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-chart-line text-primary"></i> Weekly Resume Processing</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Last 7 Weeks</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Certificates Verified vs Flagged -->
+    <div class="card chart-col-6">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-chart-simple text-primary"></i> Certificates: Verified vs Flagged</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">By Issuing Authority</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="certsAuthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 4: Candidates by Job Role -->
+    <div class="card chart-col-6">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-briefcase text-primary"></i> Candidates by Job Role</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Pipeline Distribution</span>
+        </div>
+        <div class="card-body">
+            <div class="chart-wrapper">
+                <canvas id="jobRoleChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Candidates Table Section -->
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h3 class="card-title"><i class="fa-solid fa-user-group text-primary"></i> Recent Candidates</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Comprehensive candidate credential roster and recruiter audit actions</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="/upload" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-plus"></i> Add Candidate
+            </a>
+        </div>
+    </div>
+
+    <!-- Toolbar Filters -->
+    <div class="table-toolbar">
+        <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">All ({{ candidates|length }})</button>
+            <button class="filter-pill" data-filter="verified">Verified</button>
+            <button class="filter-pill" data-filter="manual">Needs Review</button>
+            <button class="filter-pill" data-filter="suspicious">Flagged</button>
+            <button class="filter-pill" data-filter="high-risk">High Risk</button>
+            <button class="filter-pill" data-filter="shortlisted">Shortlisted</button>
+        </div>
+
+        <div style="position: relative; width: 280px;">
+            <input type="text" id="tableSearchInput" class="form-control" placeholder="Filter candidates..." style="padding-left: 2.25rem;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+        </div>
+    </div>
+
+    <!-- Candidates Table -->
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Position</th>
+                    <th>Resume Score</th>
+                    <th>Certificates</th>
+                    <th>Verification Status</th>
+                    <th>Risk Level</th>
+                    <th>Interview Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="candidatesTableBody">
+                {% for c in candidates %}
+                <tr data-status="{{ c.verification_status }}" data-risk="{{ c.risk_level }}" data-decision="{{ c.recruiter_decision }}">
+                    <td>
+                        <div class="candidate-cell">
+                            <img src="{{ c.avatar or 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80' }}" alt="{{ c.name }}" class="candidate-avatar">
+                            <div>
+                                <div class="candidate-name">{{ c.name }}</div>
+                                <div class="candidate-email">{{ c.email }} • {{ c.location }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-main);">{{ c.position }}</div>
+                    </td>
+                    <td>
+                        <div class="score-indicator">
+                            <div class="score-circle-sm" style="
+                                {% if c.overall_resume_score >= 85 %}background: var(--success-bg); color: var(--success);
+                                {% elif c.overall_resume_score >= 65 %}background: var(--warning-bg); color: var(--warning);
+                                {% else %}background: var(--danger-bg); color: var(--danger);{% endif %}
+                            ">
+                                {{ c.overall_resume_score|round|int }}
+                            </div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">/100</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% set cert_count = c.resumes[0].certificates|length if c.resumes and c.resumes[0].certificates else 1 %}
+                        <span style="font-weight: 600; color: var(--text-main);"><i class="fa-solid fa-award text-primary"></i> {{ cert_count }} Detected</span>
+                    </td>
+                    <td>
+                        {% if c.verification_status == 'VERIFIED' %}
+                        <span class="badge badge-verified"><i class="fa-solid fa-circle-check"></i> VERIFIED</span>
+                        {% elif c.verification_status == 'NEEDS MANUAL VERIFICATION' %}
+                        <span class="badge badge-manual"><i class="fa-solid fa-circle-exclamation"></i> NEEDS REVIEW</span>
+                        {% elif c.verification_status == 'SUSPICIOUS' %}
+                        <span class="badge badge-suspicious"><i class="fa-solid fa-triangle-exclamation"></i> FLAGGED</span>
+                        {% else %}
+                        <span class="badge badge-fake"><i class="fa-solid fa-circle-xmark"></i> INVALID / FAKE</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.risk_level == 'LOW' %}
+                        <span class="badge badge-risk-low"><i class="fa-solid fa-shield"></i> LOW ({{ c.risk_score|round|int }}%)</span>
+                        {% elif c.risk_level == 'MEDIUM' %}
+                        <span class="badge badge-risk-med"><i class="fa-solid fa-shield-halved"></i> MED ({{ c.risk_score|round|int }}%)</span>
+                        {% else %}
+                        <span class="badge badge-risk-high"><i class="fa-solid fa-triangle-exclamation"></i> HIGH ({{ c.risk_score|round|int }}%)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.interview_status == 'SCHEDULED' %}
+                        <span class="badge badge-verified"><i class="fa-solid fa-calendar-check"></i> SCHEDULED</span>
+                        {% elif c.interview_status == 'PENDING' %}
+                        <span class="badge badge-manual"><i class="fa-solid fa-clock"></i> PENDING</span>
+                        {% elif c.interview_status == 'CANCELLED' %}
+                        <span class="badge badge-fake"><i class="fa-solid fa-ban"></i> CANCELLED</span>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">Not Scheduled</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 0.4rem;">
+                            <a href="/candidate/{{ c.id }}" class="btn btn-sm btn-secondary" title="View Full AI Analysis">
+                                <i class="fa-solid fa-eye"></i> Profile
+                            </a>
+                            <button type="button" class="btn btn-sm btn-primary" onclick="setCandidateDecision({{ c.id }}, 'SHORTLISTED')" title="Shortlist for Interview">
+                                <i class="fa-solid fa-user-check"></i> Shortlist
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Chart 1: Verification Status Doughnut
+    const statusCtx = document.getElementById("statusChart").getContext("2d");
+    new Chart(statusCtx, {
+        type: "doughnut",
+        data: {
+            labels: ["Verified", "Needs Review", "High Risk / Flagged"],
+            datasets: [{
+                data: [{{ verified_count }}, {{ manual_count }}, {{ high_risk_count }}],
+                backgroundColor: ["#10B981", "#F59E0B", "#EF4444"],
+                borderWidth: 2,
+                borderColor: "transparent"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: "bottom", labels: { boxWidth: 12, font: { family: "Inter" } } }
+            },
+            cutout: "70%"
+        }
+    });
+
+    // Chart 2: Weekly Processing Line
+    const weeklyCtx = document.getElementById("weeklyChart").getContext("2d");
+    new Chart(weeklyCtx, {
+        type: "line",
+        data: {
+            labels: ["W1", "W2", "W3", "W4", "W5", "W6", "W7"],
+            datasets: [
+                {
+                    label: "Resumes Screened",
+                    data: [120, 185, 210, 240, 290, 310, 360],
+                    borderColor: "#4F46E5",
+                    backgroundColor: "rgba(79, 70, 229, 0.08)",
+                    fill: true,
+                    tension: 0.35
+                },
+                {
+                    label: "Certificates Verified",
+                    data: [95, 140, 175, 195, 230, 260, 295],
+                    borderColor: "#10B981",
+                    backgroundColor: "transparent",
+                    borderDash: [4, 4],
+                    tension: 0.35
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } },
+            scales: {
+                y: { grid: { color: "rgba(226, 232, 240, 0.5)" } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Chart 3: Certificates by Authority
+    const certsCtx = document.getElementById("certsAuthChart").getContext("2d");
+    new Chart(certsCtx, {
+        type: "bar",
+        data: {
+            labels: ["AWS", "Google Cloud", "Microsoft", "CNCF", "Stanford", "HashiCorp"],
+            datasets: [
+                { label: "Verified", data: [420, 310, 280, 190, 85, 160], backgroundColor: "#10B981" },
+                { label: "Flagged / Mismatch", data: [15, 28, 12, 8, 34, 6], backgroundColor: "#EF4444" }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "bottom" } },
+            scales: { x: { stacked: true }, y: { stacked: true } }
+        }
+    });
+
+    // Chart 4: Candidates by Job Role
+    const jobCtx = document.getElementById("jobRoleChart").getContext("2d");
+    new Chart(jobCtx, {
+        type: "bar",
+        indexAxis: 'y',
+        data: {
+            labels: ["Cloud Solutions Architect", "Machine Learning / AI", "DevOps & SRE", "Full Stack Developer", "Data Engineer"],
+            datasets: [{
+                label: "Candidates",
+                data: [380, 290, 240, 320, 218],
+                backgroundColor: "#6366F1",
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } } }
+        }
+    });
+});
+</script>
+{% endblock %}

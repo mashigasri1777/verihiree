@@ -1,0 +1,3 @@
+"""
+VERIRESUME Sample Data Module
+"""
