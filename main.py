@@ -83,8 +83,15 @@ def filter_escapejs(val):
         return "{}"
     return str(val).replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
 
+def filter_hash(val):
+    import hashlib
+    if not val:
+        return "e3b0c44298fc1c14"
+    return hashlib.sha256(str(val).encode("utf-8")).hexdigest()[:16]
+
 templates.env.filters["from_json"] = filter_from_json
 templates.env.filters["escapejs"] = filter_escapejs
+templates.env.filters["hash"] = filter_hash
 
 
 @app.on_event("startup")
@@ -95,11 +102,19 @@ def on_startup():
     log_event("SYSTEM_STARTUP", "VeriHire AI SaaS Application engine started.", {"demo_mode": config.DEMO_MODE})
 
 
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse, Response
+
 # ============================================================================
 # WEB PAGES / HTML ROUTES
 # ============================================================================
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    """Favicon endpoint returning 204 No Content to avoid 404 logs."""
+    return Response(status_code=204)
+
+
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def page_landing(request: Request, db: Session = Depends(get_db)):
     """Public SaaS Landing Page."""
     return templates.TemplateResponse(

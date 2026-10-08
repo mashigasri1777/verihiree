@@ -137,7 +137,7 @@ class SocketVerificationServer:
             request = recv_msg(client_socket)
             
             if not request:
-                logger.warning(f"Empty or invalid message from {client_address}")
+                logger.debug(f"Connection probe closed from {client_address}")
                 return
 
             req_type = request.get("request_type", "verify_certificate")
